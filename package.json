@@ -11,7 +11,8 @@
     "test": "node --import tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit -p .",
     "mcp": "node --import tsx src/mcp/server.ts",
-    "test:e2e": "npm run build && node --import tsx test/mcp.e2e.ts"
+    "test:e2e": "npm run build && node --import tsx test/mcp.e2e.ts",
+    "example": "node --import tsx scripts/example.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/ext-apps": "^1.7.5",

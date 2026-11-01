@@ -17,7 +17,7 @@ VibeBlocks shows the project as a C4 diagram the user reads instead of code. You
 - Data stores have no components. Components only live in containers.
 - No relationship between an element and its own parent or child.
 - Relationship kinds: uses (only from a person), request (HTTP/RPC), command (tell something to act), event (status pushed back), data (read/write a data store; required for arrows into one), external (call a third-party system; required for arrows to one), internal (component to component inside one container).
-- Code refs {file, symbol?} must exist: file relative to the repo root, symbol = exact class/function/const name in it.
+- Code refs {file, symbol?} must exist: file relative to the repo root, symbol = exact class/function/const name in it. A whole folder is {"file": "src/billing/"} (ending in "/", no symbol): use it when every file in the folder belongs to the component.
 
 ## Operations
 Each op is an object with an "op" field and exactly these fields ("?" = optional). Any other field is refused.

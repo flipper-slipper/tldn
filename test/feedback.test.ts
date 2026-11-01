@@ -51,3 +51,15 @@ test('the readback rolls arrows up to containers', () => {
   assert.match(text, /Web App → API Service: /);
   assert.doesNotMatch(text, /API Service → API Service/);
 });
+
+test('a folder ref ("dir/") points at every file in it', () => {
+  const ops = ACME_OPS.map((o: any) => (o.id === 'payments' ? { ...o, code: [{ file: 'api/' }] } : o));
+  const r = run(ops);
+  assert.deepEqual(r.errors, []);
+  assert.match(run([...ACME_OPS, { op: 'update', id: 'payments', set: { code: [{ file: 'api/nope/' }] } }]).errors[0].message, /folder "api\/nope\/" does not exist/);
+  assert.match(run([...ACME_OPS, { op: 'update', id: 'payments', set: { code: [{ file: 'api/', symbol: 'x' }] } }]).errors[0].message, /is a folder; a symbol needs a file/);
+  const m = acme();
+  m.containers.find((c) => c.id === 'api')!.components.find((k) => k.id === 'payments')!.code = [{ file: 'api/' }];
+  m.containers.find((c) => c.id === 'api')!.components.find((k) => k.id === 'orders')!.code = [];
+  assert.deepEqual(coverage(root, m).unmapped, []);
+});

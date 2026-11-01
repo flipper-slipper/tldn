@@ -12,15 +12,18 @@ export interface Issue { path: string; message: string }
 export interface Validation { model?: Model; errors: Issue[]; warnings: Issue[] }
 
 /** Reads files relative to the repo root; null if missing. Injected so tests and proposals can fake it. */
-export type FileReader = (file: string) => string | null;
+export type FileReader = ((file: string) => string | null) & { isDir?: (dir: string) => boolean };
 
 export function repoReader(root: string): FileReader {
   const base = path.resolve(root);
-  return (file) => {
-    const abs = path.resolve(base, file);
-    if (abs !== base && !abs.startsWith(base + path.sep)) return null;
+  const inside = (p: string) => { const abs = path.resolve(base, p); return abs === base || abs.startsWith(base + path.sep) ? abs : null; };
+  const read: FileReader = (file) => {
+    const abs = inside(file);
+    if (!abs) return null;
     try { return fs.readFileSync(abs, 'utf8'); } catch { return null; }
   };
+  read.isDir = (dir) => { const abs = inside(dir); try { return !!abs && fs.statSync(abs).isDirectory(); } catch { return false; } };
+  return read;
 }
 
 export function validate(raw: unknown, read: FileReader | null): Validation {
@@ -117,6 +120,11 @@ export function validate(raw: unknown, read: FileReader | null): Validation {
 
   function checkRef(r: { file: string; symbol?: string }, where: string) {
     if (!read) return;
+    if (r.file.endsWith('/')) {
+      if (r.symbol) err(where, `"${r.file}" is a folder; a symbol needs a file. Drop "symbol" or point at the file.`);
+      else if (read.isDir && !read.isDir(r.file)) err(where, `folder "${r.file}" does not exist (paths are relative to the repo root).`);
+      return;
+    }
     const text = read(r.file);
     if (text === null) { err(where, `file "${r.file}" does not exist (paths are relative to the repo root).`); return; }
     if (r.symbol && !new RegExp(`\\b${escapeRe(r.symbol)}\\b`).test(text))
@@ -142,6 +150,7 @@ function kindRules(kind: string, a: ElementRef, b: ElementRef, fail: (m: string)
 }
 
 function dirExists(read: FileReader, dir: string): boolean {
+  if (read.isDir) return read.isDir(dir);
   // the reader only reads files; treat a folder as present if any common manifest or index sits in it
   return ['package.json', 'pyproject.toml', 'index.ts', 'index.js', 'main.py', 'go.mod', 'Cargo.toml', 'schema.sql'].some((f) => read(path.posix.join(dir, f)) !== null);
 }

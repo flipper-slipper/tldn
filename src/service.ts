@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import { Model, emptyModel } from './model/schema';
 import { applyOps } from './model/ops';
 import { repoReader } from './model/validate';
-import { coverage, coverageWarning } from './model/coverage';
+import { coverage, coverageWarning, expandRef } from './model/coverage';
 import { readback } from './model/readback';
 import { loadModel, loadProposal, saveModel, saveProposal } from './model/store';
 import { computeViews } from './engine/likec4';
@@ -94,10 +94,17 @@ export async function getViews(root: string): Promise<Views & { errors?: unknown
       const r = applyOps(l.model, p.ops, null);
       if (r.model) proposed = { model: r.model, summary: p.summary };
     }
-    hit = { stamp, views: computeViews(l.model, proposed) };
+    hit = { stamp, views: computeViews(l.model, proposed).then((v) => ({ ...v, model: withFiles(root, v.model) })) };
     cache.set(root, hit);
   }
   return hit.views;
+}
+
+/** The model the map gets: folder refs ("dir/") replaced by the files in them, so the Code level can open each one. */
+function withFiles(root: string, m: Model): Model {
+  const out = structuredClone(m);
+  for (const c of out.containers) for (const k of c.components) k.code = k.code.flatMap((r) => (r.file.endsWith('/') ? expandRef(root, r.file).map((file) => ({ file })) : [r]));
+  return out;
 }
 
 /** A file's text plus the line range of a symbol in it, for the Code level. */

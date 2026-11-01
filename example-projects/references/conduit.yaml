@@ -1,0 +1,214 @@
+# VibeBlocks C4 model. Edited by your agent through VibeBlocks; commit it with the code.
+version: 1
+system:
+  id: conduit
+  name: Conduit
+  description: "A Medium-style blogging site: members publish articles, comment, favorite and follow authors."
+people:
+  - id: member
+    name: Member
+    description: Reads and writes articles, comments, and follows other authors.
+externals: []
+containers:
+  - id: frontend
+    name: Web Frontend
+    type: web-app
+    description: Single-page app members use to read, write and discuss articles.
+    technology: React, Redux, superagent
+    path: frontend
+    components:
+      - id: fe-shell
+        name: App shell & state
+        description: Boots the app, holds the Redux store, routes between pages and keeps the login token.
+        code:
+          - file: frontend/src/index.js
+          - file: frontend/src/components/App.js
+          - file: frontend/src/components/Header.js
+          - file: frontend/src/components/ListErrors.js
+          - file: frontend/src/store.js
+          - file: frontend/src/reducer.js
+          - file: frontend/src/middleware.js
+          - file: frontend/src/reducers/common.js
+          - file: frontend/src/constants/
+      - id: fe-account
+        name: Sign-in & settings
+        description: Sign-up, login and the account settings page.
+        code:
+          - file: frontend/src/components/Login.js
+          - file: frontend/src/components/Register.js
+          - file: frontend/src/components/Settings.js
+          - file: frontend/src/reducers/auth.js
+          - file: frontend/src/reducers/settings.js
+      - id: fe-feed
+        name: Article feed
+        description: Home page with the global and personal feeds, tag filter and paging.
+        code:
+          - file: frontend/src/components/Home/
+          - file: frontend/src/components/ArticleList.js
+          - file: frontend/src/components/ArticlePreview.js
+          - file: frontend/src/components/ListPagination.js
+          - file: frontend/src/reducers/home.js
+          - file: frontend/src/reducers/articleList.js
+      - id: fe-article
+        name: Article page
+        description: Shows one article with its comments, and lets the author edit or delete it.
+        code:
+          - file: frontend/src/components/Article/
+          - file: frontend/src/reducers/article.js
+      - id: fe-editor
+        name: Article editor
+        description: Form for writing and editing an article.
+        code:
+          - file: frontend/src/components/Editor.js
+          - file: frontend/src/reducers/editor.js
+      - id: fe-profiles
+        name: Profiles
+        description: An author's page with their articles and favorites, and the follow button.
+        code:
+          - file: frontend/src/components/Profile.js
+          - file: frontend/src/components/ProfileFavorites.js
+          - file: frontend/src/reducers/profile.js
+      - id: fe-api
+        name: API client
+        description: Every call to the Conduit API goes through here, with the login token attached.
+        code:
+          - file: frontend/src/agent.js
+            symbol: API_ROOT
+  - id: backend
+    name: Conduit API
+    type: api
+    description: REST API (RealWorld spec) for users, profiles, articles, comments and tags.
+    technology: Node.js, Express, Prisma, JWT
+    path: backend
+    components:
+      - id: be-server
+        name: HTTP server & routing
+        description: Starts Express, mounts each area under /api and turns errors into JSON responses.
+        code:
+          - file: backend/src/main.ts
+          - file: backend/src/app/routes/routes.ts
+          - file: backend/src/app/models/
+      - id: be-auth
+        name: Accounts & login
+        description: Registers and logs in users, issues and checks JWTs, and updates the current user.
+        code:
+          - file: backend/src/app/routes/auth/
+      - id: be-articles
+        name: Articles & comments
+        description: Creates, lists, updates and deletes articles, comments and favorites, and builds the feeds.
+        code:
+          - file: backend/src/app/routes/article/
+      - id: be-profiles
+        name: Profiles & follows
+        description: Returns author profiles and follows or unfollows them.
+        code:
+          - file: backend/src/app/routes/profile/
+      - id: be-tags
+        name: Tags
+        description: Lists the most used tags.
+        code:
+          - file: backend/src/app/routes/tag/
+  - id: db
+    name: Database
+    type: database
+    description: Stores users, follows, articles, comments, favorites and tags.
+    technology: PostgreSQL
+    path: backend/src/prisma
+    components: []
+relationships:
+  - from: member
+    to: fe-shell
+    kind: uses
+    description: opens the app
+  - from: member
+    to: fe-account
+    kind: uses
+    description: signs up, logs in
+  - from: member
+    to: fe-feed
+    kind: uses
+    description: browses articles
+  - from: member
+    to: fe-article
+    kind: uses
+    description: reads, comments
+  - from: member
+    to: fe-editor
+    kind: uses
+    description: writes articles
+  - from: member
+    to: fe-profiles
+    kind: uses
+    description: follows authors
+  - from: fe-shell
+    to: fe-api
+    kind: internal
+    description: loads current user, sets token
+  - from: fe-account
+    to: fe-api
+    kind: internal
+    description: login, register, save user
+  - from: fe-feed
+    to: fe-api
+    kind: internal
+    description: loads feeds and tags
+  - from: fe-article
+    to: fe-api
+    kind: internal
+    description: loads article, comments
+  - from: fe-editor
+    to: fe-api
+    kind: internal
+    description: saves article
+  - from: fe-profiles
+    to: fe-api
+    kind: internal
+    description: loads profile, follows
+  - from: fe-api
+    to: be-server
+    kind: request
+    description: calls the REST API
+    technology: HTTPS, JSON (/api)
+  - from: be-server
+    to: be-auth
+    kind: internal
+    description: /users, /user
+  - from: be-server
+    to: be-articles
+    kind: internal
+    description: /articles
+  - from: be-server
+    to: be-profiles
+    kind: internal
+    description: /profiles
+  - from: be-server
+    to: be-tags
+    kind: internal
+    description: /tags
+  - from: be-articles
+    to: be-profiles
+    kind: internal
+    description: adds author profiles
+    evidence:
+      - file: backend/src/app/routes/article/article.service.ts
+        symbol: profileMapper
+  - from: be-auth
+    to: db
+    kind: data
+    description: reads and saves users
+    technology: Prisma
+  - from: be-articles
+    to: db
+    kind: data
+    description: reads and saves articles, comments
+    technology: Prisma
+  - from: be-profiles
+    to: db
+    kind: data
+    description: reads users, saves follows
+    technology: Prisma
+  - from: be-tags
+    to: db
+    kind: data
+    description: counts tags
+    technology: Prisma

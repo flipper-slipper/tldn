@@ -1,0 +1,128 @@
+# VibeBlocks C4 model. Edited by your agent through VibeBlocks; commit it with the code.
+version: 1
+system:
+  id: petclinic
+  name: Spring PetClinic
+  description: Lets a vet clinic keep track of pet owners, their pets, visits and the clinic's vets.
+people:
+  - id: staff
+    name: Clinic staff
+    description: Look up owners, register pets, book visits and check which vets work there.
+externals: []
+containers:
+  - id: web
+    name: PetClinic Web App
+    type: web-app
+    description: Server-rendered website where staff manage owners, pets and visits.
+    technology: Java, Spring Boot, Spring MVC, Thymeleaf
+    path: src/main
+    components:
+      - id: owners
+        name: Owners
+        description: Finds, lists, creates and edits pet owners, and saves their pets and visits with them.
+        code:
+          - file: src/main/java/org/springframework/samples/petclinic/owner/OwnerController.java
+            symbol: OwnerController
+          - file: src/main/java/org/springframework/samples/petclinic/owner/OwnerRepository.java
+            symbol: OwnerRepository
+          - file: src/main/java/org/springframework/samples/petclinic/owner/Owner.java
+            symbol: Owner
+          - file: src/main/java/org/springframework/samples/petclinic/model/
+          - file: src/main/resources/templates/owners/
+      - id: pets-visits
+        name: Pets & visits
+        description: Adds and edits an owner's pets and books visits for them.
+        code:
+          - file: src/main/java/org/springframework/samples/petclinic/owner/PetController.java
+            symbol: PetController
+          - file: src/main/java/org/springframework/samples/petclinic/owner/VisitController.java
+            symbol: VisitController
+          - file: src/main/java/org/springframework/samples/petclinic/owner/Pet.java
+            symbol: Pet
+          - file: src/main/java/org/springframework/samples/petclinic/owner/Visit.java
+            symbol: Visit
+          - file: src/main/java/org/springframework/samples/petclinic/owner/PetType.java
+            symbol: PetType
+          - file: src/main/java/org/springframework/samples/petclinic/owner/PetTypeRepository.java
+            symbol: PetTypeRepository
+          - file: src/main/java/org/springframework/samples/petclinic/owner/PetTypeFormatter.java
+            symbol: PetTypeFormatter
+          - file: src/main/java/org/springframework/samples/petclinic/owner/PetValidator.java
+            symbol: PetValidator
+          - file: src/main/java/org/springframework/samples/petclinic/owner/package-info.java
+          - file: src/main/resources/templates/pets/
+      - id: vets
+        name: Vet directory
+        description: Lists the clinic's vets and specialties as a page or JSON, cached in memory.
+        code:
+          - file: src/main/java/org/springframework/samples/petclinic/vet/
+          - file: src/main/java/org/springframework/samples/petclinic/system/CacheConfiguration.java
+            symbol: CacheConfiguration
+          - file: src/main/resources/templates/vets/
+      - id: site
+        name: Site shell
+        description: Starts the app and serves the home page, shared layout, error page, translations and styles.
+        code:
+          - file: src/main/java/org/springframework/samples/petclinic/PetClinicApplication.java
+            symbol: PetClinicApplication
+          - file: src/main/java/org/springframework/samples/petclinic/PetClinicRuntimeHints.java
+            symbol: PetClinicRuntimeHints
+          - file: src/main/java/org/springframework/samples/petclinic/package-info.java
+          - file: src/main/java/org/springframework/samples/petclinic/system/WelcomeController.java
+            symbol: WelcomeController
+          - file: src/main/java/org/springframework/samples/petclinic/system/CrashController.java
+            symbol: CrashController
+          - file: src/main/java/org/springframework/samples/petclinic/system/WebConfiguration.java
+            symbol: WebConfiguration
+          - file: src/main/java/org/springframework/samples/petclinic/system/package-info.java
+          - file: src/main/resources/templates/fragments/
+          - file: src/main/resources/templates/welcome.html
+          - file: src/main/resources/templates/error.html
+          - file: src/main/resources/messages/
+          - file: src/main/scss/
+  - id: db
+    name: Clinic Database
+    type: database
+    description: Stores owners, pets, pet types, visits, vets and their specialties.
+    technology: H2 in memory by default, or MySQL / PostgreSQL
+    path: src/main/resources/db
+    components: []
+relationships:
+  - from: staff
+    to: owners
+    kind: uses
+    description: finds and edits owners
+  - from: staff
+    to: pets-visits
+    kind: uses
+    description: adds pets, books visits
+  - from: staff
+    to: vets
+    kind: uses
+    description: looks up vets
+  - from: staff
+    to: site
+    kind: uses
+    description: opens the home page
+  - from: pets-visits
+    to: owners
+    kind: internal
+    description: loads and saves the owner
+    evidence:
+      - file: src/main/java/org/springframework/samples/petclinic/owner/PetController.java
+        symbol: OwnerRepository
+  - from: owners
+    to: db
+    kind: data
+    description: reads and saves owners, pets, visits
+    technology: JPA
+  - from: pets-visits
+    to: db
+    kind: data
+    description: reads pet types
+    technology: JPA
+  - from: vets
+    to: db
+    kind: data
+    description: reads vets
+    technology: JPA

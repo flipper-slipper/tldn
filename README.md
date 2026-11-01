@@ -57,10 +57,11 @@ npm test
 Then open the diagram of the example project in a browser:
 
 ```bash
-npm run dev -- example-projects/acme-shop
+npm run example -- reference eshoponweb
 ```
 
-Go to http://localhost:5178. This dev page is the same UI, backed by the same tool handlers, without
+Go to http://localhost:5178 to click through the reference model of eShopOnWeb.
+`npm run dev -- <project folder>` opens the map of any project that has a `.vibeblocks/model.yaml`. This dev page is the same UI, backed by the same tool handlers, without
 a host: messages the diagram would post into the chat show as a toast instead.
 
 ## Project structure
@@ -88,15 +89,17 @@ dev/serve.ts         dev page server: the built UI + POST /api/tool
 scripts/
   build-server.mjs   bundles the server into dist/mcp.mjs
   call.ts            call the built server from the shell (for agents or people without it connected)
-  seed-acme.ts       rewrites acme-shop's model from test/acme.ts (optionally with the voice-search proposal)
+  example.ts         example projects: list, reset, compare a map with its reference, open a reference
+  seed-acme.ts       draws acme-shop from test/acme.ts (optionally with the voice-search proposal)
   print-views.ts     prints the computed views of a project, for debugging the engine
 test/
   model.test.ts      the C4 rules and all-or-nothing batches
   engine.test.ts     rolled-up arrows, scoped views, deterministic layout
-  feedback.test.ts   what the agent hears back: strict ops, warnings, coverage, readback, the guide's example
+  feedback.test.ts   what the agent hears back: strict ops, warnings, coverage, folder refs, readback, the guide's example
+  references.test.ts every reference model stays valid and covers every source file
   mcp.e2e.ts         starts dist/mcp.mjs over stdio and drives it like a host
   acme.ts            the hand-written acme-shop operations used by the tests
-example-projects/    small real projects to test mapping on (see below)
+example-projects/    real projects to test mapping on, and references/ with their reference models (see below)
 dist/                build output (git-ignored): mcp.mjs and ui/index.html
 ```
 
@@ -161,32 +164,75 @@ To see what's going wrong: `~/Library/Logs/Claude/mcp-server-vibeblocks.log`.
 
 The project folder is the tool's `path`, else `VIBEBLOCKS_ROOT`, else the server's working directory.
 
-## Example projects
+## Example projects and reference models
 
-`example-projects/` holds small real projects to test mapping on. Each one is a normal repo with its
-own `.vibeblocks/model.yaml` committed next to the code.
+`example-projects/` holds real projects to test mapping on. Each one is code only, with no
+`.vibeblocks/` folder, so an agent has to map it from scratch. Next to them,
+`example-projects/references/<name>.yaml` is the **reference model** for each one: the answer key a
+fresh agent's map is compared against.
 
-- **acme-shop**: React web app, Express API, Postgres, Stripe and SendGrid. Its model was drawn by an
-  agent from the code. `node --import tsx scripts/seed-acme.ts [--propose]` replaces it with the
-  hand-written one from `test/acme.ts` (and, with `--propose`, adds the dashed voice-search proposal).
+| Example | What it is | Source |
+|---|---|---|
+| `acme-shop` | Tiny shop: React web app, Express API, Postgres, Stripe, SendGrid | written for VibeBlocks |
+| `spring-petclinic` | Vet clinic site: one Spring Boot app (server-rendered) and a database | spring-projects/spring-petclinic, Apache-2.0 |
+| `conduit` | Medium-style blog: React/Redux frontend, Express/Prisma API, Postgres | two RealWorld repos, MIT |
+| `eshoponweb` | .NET shop: MVC site, Blazor admin app, public API, two SQL Server databases | dotnet-architecture/eShopOnWeb, MIT |
 
-To add one: put the project in `example-projects/<name>/` without a `.vibeblocks/` folder, map it
-with an agent (below), check the result in the dev page, and commit the code and the model together.
+Each copied project has a `SOURCE.md` with its origin, commit and licence.
 
 ### Testing how well an agent maps a project
 
-The quality of the diagram depends on the agent and on what we tell it, so test with an agent that
-has never seen the project. Copy the project somewhere outside the repo without its `.vibeblocks/`
-folder, then give a fresh agent only this:
+1. In your host (e.g. Claude Desktop), ask: *"Map the architecture of
+   /absolute/path/to/vibeblocks/example-projects/conduit"*. The agent reads the code and draws the map.
+2. Compare it with the reference:
+   ```bash
+   npm run example -- compare conduit
+   ```
+   This prints both maps as plain lines (containers, components and their files, arrows between
+   containers). To click through the reference itself, run `npm run example -- reference conduit`.
+   It opens the dev page on a temporary copy, so the agent's map is left alone.
+3. Judge the differences by eye. Ones that matter (a missed container, odd grouping, a missing arrow)
+   become a rule in `src/guide.ts` or a check in `src/model/validate.ts`.
+4. Start the next run fresh:
+   ```bash
+   npm run example -- reset conduit
+   ```
 
-> Map the architecture of /path/to/copy and show it to me. Use the VibeBlocks tools through
+`npm run example -- list` shows which examples have a map drawn right now. The guide shown to agents
+uses a made-up app as its example, so it never gives away a reference.
+
+Without a host, a fresh agent can use the tools from the shell with `scripts/call.ts`, which runs
+the freshly built `dist/mcp.mjs`:
+
+> Map the architecture of /path/to/example and show it to me. Use the VibeBlocks tools through
 > `node --import tsx scripts/call.ts list` and `node --import tsx scripts/call.ts <tool> '<json>'`
 > (run from this repo). Read only files in that folder. Report every update_model call with its
 > exact errors and warnings, and anything you had to guess.
 
-Errors and guesses show where the guide, tool descriptions or messages need work.
-`scripts/call.ts` runs the freshly built `dist/mcp.mjs`, so it also works when the server your agent
-has connected is out of date.
+### Adding an example
+
+1. Copy the project into `example-projects/<name>/` without its git history, and add a `SOURCE.md`
+   (where it came from, commit, licence). Only use projects whose licence allows it.
+2. Draft the reference: read the code and build the model through the tools (`update_model` with
+   `"path"` set to the example), until it saves with no warnings and every source file is on the map.
+3. Move `<name>/.vibeblocks/model.yaml` to `references/<name>.yaml`, delete `<name>/.vibeblocks/`,
+   and have a person review it with `npm run example -- reference <name>`. The review is what makes
+   it a reference.
+4. `npm test` checks that every reference stays valid and covers every source file.
+
+### Decisions the references make
+
+These are the judgment calls in the reference models; when an agent's map differs, these are the
+usual reasons. They aren't in the guide yet.
+
+- **Containers are things that run or store data.** Shared libraries (e.g. eShopOnWeb's
+  ApplicationCore and Infrastructure) are not containers; their code goes into the components that
+  use them, so a file can belong to components in more than one container.
+- **A routes or startup file belongs to a "shell" component** (server, routing, layout), not to one
+  feature.
+- **A single place every call goes through is a component** (Conduit's API client), even if small.
+- **Helpers fold into the component that uses them** (connection pools, base classes, utilities).
+- **A folder ref (`"dir/"`) is used when the whole folder belongs to one component.**
 
 ## Not built yet
 

@@ -1,0 +1,369 @@
+# VibeBlocks C4 model. Edited by your agent through VibeBlocks; commit it with the code.
+version: 1
+system:
+  id: eshop
+  name: eShopOnWeb
+  description: Online store where shoppers buy branded merchandise and staff manage the product catalog.
+people:
+  - id: shopper
+    name: Shopper
+    description: Browses products, fills a basket, checks out and reviews past orders.
+  - id: admin
+    name: Store admin
+    description: Signs in with an admin account to add, edit and delete catalog items.
+externals:
+  - id: keyvault
+    name: Azure Key Vault
+    description: Holds the database connection strings when the site runs in Azure.
+    technology: Azure
+containers:
+  - id: web
+    name: Store Website
+    type: web-app
+    description: "The shop: catalog, basket, checkout, orders and accounts. Also serves the admin app's files under /admin."
+    technology: ASP.NET Core MVC, Razor Pages
+    path: src/Web
+    components:
+      - id: web-catalog
+        name: Product catalog
+        description: Home page that lists products with brand and type filters and paging, cached in memory.
+        code:
+          - file: src/Web/Pages/Index.cshtml
+          - file: src/Web/Pages/Index.cshtml.cs
+          - file: src/Web/Pages/Shared/_product.cshtml
+          - file: src/Web/Pages/Shared/_pagination.cshtml
+          - file: src/Web/Services/CatalogViewModelService.cs
+          - file: src/Web/Services/CachedCatalogViewModelService.cs
+          - file: src/Web/Interfaces/ICatalogViewModelService.cs
+          - file: src/Web/ViewModels/CatalogIndexViewModel.cs
+          - file: src/Web/ViewModels/CatalogItemViewModel.cs
+          - file: src/Web/ViewModels/PaginationInfoViewModel.cs
+          - file: src/Web/Extensions/CacheHelpers.cs
+          - file: src/ApplicationCore/Entities/CatalogItem.cs
+          - file: src/ApplicationCore/Entities/CatalogBrand.cs
+          - file: src/ApplicationCore/Entities/CatalogType.cs
+          - file: src/ApplicationCore/Specifications/CatalogFilterPaginatedSpecification.cs
+          - file: src/ApplicationCore/Specifications/CatalogFilterSpecification.cs
+          - file: src/ApplicationCore/Specifications/CatalogItemNameSpecification.cs
+          - file: src/ApplicationCore/Specifications/CatalogItemsSpecification.cs
+          - file: src/ApplicationCore/CatalogSettings.cs
+          - file: src/ApplicationCore/Services/UriComposer.cs
+          - file: src/ApplicationCore/Interfaces/IUriComposer.cs
+      - id: web-basket
+        name: Basket & checkout
+        description: Adds items to the basket, shows it, and turns it into an order at checkout.
+        code:
+          - file: src/Web/Pages/Basket/
+          - file: src/Web/Pages/Shared/Components/BasketComponent/
+          - file: src/Web/Views/Shared/Components/Basket/
+          - file: src/Web/Services/BasketViewModelService.cs
+          - file: src/Web/Interfaces/IBasketViewModelService.cs
+          - file: src/Web/ViewModels/BasketComponentViewModel.cs
+          - file: src/ApplicationCore/Entities/BasketAggregate/
+          - file: src/ApplicationCore/Entities/BuyerAggregate/
+          - file: src/ApplicationCore/Services/BasketService.cs
+          - file: src/ApplicationCore/Services/OrderService.cs
+          - file: src/ApplicationCore/Interfaces/IBasketService.cs
+          - file: src/ApplicationCore/Interfaces/IOrderService.cs
+          - file: src/ApplicationCore/Interfaces/IBasketQueryService.cs
+          - file: src/ApplicationCore/Specifications/BasketWithItemsSpecification.cs
+          - file: src/ApplicationCore/Exceptions/
+          - file: src/Infrastructure/Data/Queries/
+      - id: web-orders
+        name: Order history
+        description: Lists a shopper's orders and shows one order's details.
+        code:
+          - file: src/Web/Controllers/OrderController.cs
+          - file: src/Web/Features/
+          - file: src/Web/Views/Order/
+          - file: src/Web/ViewModels/OrderViewModel.cs
+          - file: src/Web/ViewModels/OrderDetailViewModel.cs
+          - file: src/Web/ViewModels/OrderItemViewModel.cs
+          - file: src/ApplicationCore/Entities/OrderAggregate/
+          - file: src/ApplicationCore/Specifications/CustomerOrdersSpecification.cs
+          - file: src/ApplicationCore/Specifications/CustomerOrdersWithItemsSpecification.cs
+          - file: src/ApplicationCore/Specifications/OrderWithItemsByIdSpec.cs
+      - id: web-account
+        name: Accounts & sign-in
+        description: Register, log in and out, manage the account and two-factor login, and give the admin app the signed-in user and a token.
+        code:
+          - file: src/Web/Areas/
+          - file: src/Web/Controllers/ManageController.cs
+          - file: src/Web/Controllers/UserController.cs
+          - file: src/Web/Views/Manage/
+          - file: src/Web/Views/Account/
+          - file: src/Web/ViewModels/Account/
+          - file: src/Web/ViewModels/Manage/
+          - file: src/Web/Views/Shared/_LoginPartial.cshtml
+          - file: src/Web/Configuration/ConfigureCookieSettings.cs
+          - file: src/Web/Configuration/RevokeAuthenticationEvents.cs
+          - file: src/Web/Extensions/EmailSenderExtensions.cs
+          - file: src/ApplicationCore/Interfaces/ITokenClaimsService.cs
+          - file: src/ApplicationCore/Interfaces/IEmailSender.cs
+          - file: src/ApplicationCore/Constants/
+          - file: src/Infrastructure/Identity/AppIdentityDbContext.cs
+          - file: src/Infrastructure/Identity/AppIdentityDbContextSeed.cs
+          - file: src/Infrastructure/Identity/ApplicationUser.cs
+          - file: src/Infrastructure/Identity/IdentityTokenClaimService.cs
+          - file: src/Infrastructure/Identity/UserNotFoundException.cs
+          - file: src/Infrastructure/Services/
+      - id: web-admin-pages
+        name: Catalog admin pages
+        description: Server-rendered pages for admins to list and edit catalog items.
+        code:
+          - file: src/Web/Pages/Admin/
+          - file: src/Web/Pages/Shared/_editCatalog.cshtml
+          - file: src/Web/Services/CatalogItemViewModelService.cs
+          - file: src/Web/Interfaces/ICatalogItemViewModelService.cs
+          - file: src/Web/ViewModels/File/
+      - id: web-shell
+        name: Site shell
+        description: Starts the site, wires services and health checks, and serves the layout, error pages and the admin app's files.
+        code:
+          - file: src/Web/Program.cs
+          - file: src/Web/Configuration/ConfigureCoreServices.cs
+          - file: src/Web/Configuration/ConfigureWebServices.cs
+          - file: src/Web/Constants.cs
+          - file: src/Web/SlugifyParameterTransformer.cs
+          - file: src/Web/HealthChecks/
+          - file: src/Web/Controllers/Api/
+          - file: src/Web/Extensions/UrlHelperExtensions.cs
+          - file: src/Web/Pages/Error.cshtml
+          - file: src/Web/Pages/Error.cshtml.cs
+          - file: src/Web/Pages/Privacy.cshtml
+          - file: src/Web/Pages/Privacy.cshtml.cs
+          - file: src/Web/Pages/_ViewImports.cshtml
+          - file: src/Web/Pages/_ViewStart.cshtml
+          - file: src/Web/Views/_ViewImports.cshtml
+          - file: src/Web/Views/_ViewStart.cshtml
+          - file: src/Web/Views/Shared/_Layout.cshtml
+          - file: src/Web/Views/Shared/_CookieConsentPartial.cshtml
+          - file: src/Web/Views/Shared/_ValidationScriptsPartial.cshtml
+          - file: src/Web/Views/Shared/Error.cshtml
+          - file: src/Web/wwwroot/js/
+      - id: web-data
+        name: Data access
+        description: EF Core context and generic repository that load and save catalog, basket and order data.
+        code:
+          - file: src/Infrastructure/Dependencies.cs
+          - file: src/Infrastructure/Data/CatalogContext.cs
+          - file: src/Infrastructure/Data/CatalogContextSeed.cs
+          - file: src/Infrastructure/Data/Config/
+          - file: src/Infrastructure/Data/EfRepository.cs
+          - file: src/Infrastructure/Data/FileItem.cs
+          - file: src/Infrastructure/Logging/
+          - file: src/ApplicationCore/Entities/BaseEntity.cs
+          - file: src/ApplicationCore/Interfaces/IAggregateRoot.cs
+          - file: src/ApplicationCore/Interfaces/IAppLogger.cs
+          - file: src/ApplicationCore/Interfaces/IRepository.cs
+          - file: src/ApplicationCore/Interfaces/IReadRepository.cs
+          - file: src/ApplicationCore/Extensions/
+  - id: admin-app
+    name: Admin App
+    type: web-app
+    description: Catalog management screens that run in the admin's browser and call the Public API.
+    technology: Blazor WebAssembly
+    path: src/BlazorAdmin
+    components:
+      - id: admin-shell
+        name: Admin shell & sign-in
+        description: Starts the app, lays out the screens and asks the website who is signed in.
+        code:
+          - file: src/BlazorAdmin/Program.cs
+          - file: src/BlazorAdmin/App.razor
+          - file: src/BlazorAdmin/_Imports.razor
+          - file: src/BlazorAdmin/CustomAuthStateProvider.cs
+          - file: src/BlazorAdmin/Shared/
+          - file: src/BlazorAdmin/Helpers/
+          - file: src/BlazorAdmin/JavaScript/
+          - file: src/BlazorAdmin/Pages/Logout.razor
+      - id: admin-screens
+        name: Catalog screens
+        description: List, create, edit, view and delete catalog items.
+        code:
+          - file: src/BlazorAdmin/Pages/CatalogItemPage/
+      - id: admin-client
+        name: API client & cache
+        description: Calls the Public API with the admin's token and caches catalog and lookup data in local storage.
+        code:
+          - file: src/BlazorAdmin/Services/
+          - file: src/BlazorAdmin/ServicesConfiguration.cs
+          - file: src/BlazorShared/
+  - id: api
+    name: Public API
+    type: api
+    description: JSON API for catalog items, brands and types, plus a login endpoint that issues JWTs.
+    technology: ASP.NET Core minimal API endpoints, JWT
+    path: src/PublicApi
+    components:
+      - id: api-host
+        name: API host
+        description: Starts the API, sets up JWT auth, CORS and Swagger, and turns errors into JSON.
+        code:
+          - file: src/PublicApi/Program.cs
+          - file: src/PublicApi/BaseMessage.cs
+          - file: src/PublicApi/BaseRequest.cs
+          - file: src/PublicApi/BaseResponse.cs
+          - file: src/PublicApi/CustomSchemaFilters.cs
+          - file: src/PublicApi/Middleware/
+      - id: api-catalog
+        name: Catalog endpoints
+        description: List, get, create, update and delete catalog items, and list brands and types.
+        code:
+          - file: src/PublicApi/CatalogItemEndpoints/
+          - file: src/PublicApi/CatalogBrandEndpoints/
+          - file: src/PublicApi/CatalogTypeEndpoints/
+          - file: src/PublicApi/ImageValidators.cs
+          - file: src/PublicApi/MappingProfile.cs
+          - file: src/ApplicationCore/Entities/CatalogItem.cs
+          - file: src/ApplicationCore/Entities/CatalogBrand.cs
+          - file: src/ApplicationCore/Entities/CatalogType.cs
+          - file: src/ApplicationCore/Specifications/CatalogFilterPaginatedSpecification.cs
+          - file: src/ApplicationCore/Specifications/CatalogFilterSpecification.cs
+          - file: src/ApplicationCore/Specifications/CatalogItemNameSpecification.cs
+          - file: src/ApplicationCore/Specifications/CatalogItemsSpecification.cs
+          - file: src/ApplicationCore/CatalogSettings.cs
+          - file: src/ApplicationCore/Services/UriComposer.cs
+          - file: src/ApplicationCore/Interfaces/IUriComposer.cs
+      - id: api-auth
+        name: Token login
+        description: Checks a username and password and returns a JWT.
+        code:
+          - file: src/PublicApi/AuthEndpoints/
+          - file: src/Infrastructure/Identity/IdentityTokenClaimService.cs
+          - file: src/ApplicationCore/Interfaces/ITokenClaimsService.cs
+      - id: api-data
+        name: Data access
+        description: The same EF Core context and repository as the website, used for catalog data.
+        code:
+          - file: src/Infrastructure/Dependencies.cs
+          - file: src/Infrastructure/Data/CatalogContext.cs
+          - file: src/Infrastructure/Data/CatalogContextSeed.cs
+          - file: src/Infrastructure/Data/Config/
+          - file: src/Infrastructure/Data/EfRepository.cs
+          - file: src/Infrastructure/Data/FileItem.cs
+          - file: src/Infrastructure/Logging/
+          - file: src/ApplicationCore/Entities/BaseEntity.cs
+          - file: src/ApplicationCore/Interfaces/IAggregateRoot.cs
+          - file: src/ApplicationCore/Interfaces/IAppLogger.cs
+          - file: src/ApplicationCore/Interfaces/IRepository.cs
+          - file: src/ApplicationCore/Interfaces/IReadRepository.cs
+          - file: src/ApplicationCore/Extensions/
+  - id: catalog-db
+    name: Catalog Database
+    type: database
+    description: Products, brands, types, baskets and orders.
+    technology: SQL Server (in-memory in tests), EF Core
+    path: src/Infrastructure/Data/Migrations
+    components: []
+  - id: identity-db
+    name: Identity Database
+    type: database
+    description: User accounts, passwords and roles.
+    technology: SQL Server, ASP.NET Core Identity
+    path: src/Infrastructure/Identity/Migrations
+    components: []
+relationships:
+  - from: shopper
+    to: web-shell
+    kind: uses
+    description: opens the store
+  - from: shopper
+    to: web-catalog
+    kind: uses
+    description: browses products
+  - from: shopper
+    to: web-basket
+    kind: uses
+    description: fills basket, checks out
+  - from: shopper
+    to: web-orders
+    kind: uses
+    description: views orders
+  - from: shopper
+    to: web-account
+    kind: uses
+    description: signs in, manages account
+  - from: admin
+    to: web-account
+    kind: uses
+    description: signs in
+  - from: admin
+    to: web-admin-pages
+    kind: uses
+    description: edits products
+  - from: admin
+    to: admin-screens
+    kind: uses
+    description: manages the catalog
+  - from: web-catalog
+    to: web-data
+    kind: internal
+    description: reads catalog
+  - from: web-basket
+    to: web-data
+    kind: internal
+    description: saves baskets and orders
+  - from: web-orders
+    to: web-data
+    kind: internal
+    description: reads orders
+  - from: web-admin-pages
+    to: web-data
+    kind: internal
+    description: updates catalog items
+  - from: web-account
+    to: web-basket
+    kind: internal
+    description: moves the guest basket on sign-in
+  - from: web-data
+    to: catalog-db
+    kind: data
+    description: reads and writes
+    technology: EF Core, SQL
+  - from: web-account
+    to: identity-db
+    kind: data
+    description: checks and saves users
+    technology: ASP.NET Core Identity
+  - from: web-shell
+    to: keyvault
+    kind: external
+    description: reads connection strings (Azure only)
+    technology: Azure SDK
+  - from: admin-shell
+    to: web-account
+    kind: request
+    description: gets signed-in user and token
+    technology: HTTPS GET /User
+  - from: admin-screens
+    to: admin-client
+    kind: internal
+    description: loads and saves items
+  - from: admin-client
+    to: api-catalog
+    kind: request
+    description: catalog items CRUD
+    technology: HTTPS, JSON, JWT
+  - from: api-host
+    to: api-catalog
+    kind: internal
+    description: routes /api/catalog-*
+  - from: api-host
+    to: api-auth
+    kind: internal
+    description: routes /api/authenticate
+  - from: api-catalog
+    to: api-data
+    kind: internal
+    description: reads and writes catalog
+  - from: api-data
+    to: catalog-db
+    kind: data
+    description: reads and writes catalog
+    technology: EF Core, SQL
+  - from: api-auth
+    to: identity-db
+    kind: data
+    description: checks passwords
+    technology: ASP.NET Core Identity

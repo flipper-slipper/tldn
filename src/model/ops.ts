@@ -7,7 +7,7 @@ import { FileReader, Issue, Validation, validate } from './validate';
 
 const Id = z.string().describe('lowercase-with-dashes, unique across the model');
 const opt = z.string().optional();
-const Code = z.array(CodeRef).optional().describe('[{file, symbol?}] file relative to the repo root, symbol = exact name in it');
+const Code = z.array(CodeRef).optional().describe('[{file, symbol?}] file relative to the repo root (or a folder ending in "/"), symbol = exact name in the file');
 
 // Each op is strict: an unknown field is an error, not silently dropped, so the agent learns the
 // real shape from the first refusal. The same table generates OPS_REFERENCE for the agent.

@@ -152,7 +152,7 @@ function Diagram({ view, sel, setSel, open }: { view: ComputedView; sel: Sel; se
   const fit = useCallback(() => {
     const b = view.bounds;
     const s = Math.min((size.w - PAD * 2) / b.w, (size.h - PAD * 2) / b.h, 0.9);
-    const s2 = Math.max(s, 0.55);
+    const s2 = Math.max(s, size.w < 900 ? 0.55 : 0.35); // narrow panes keep text readable and pan instead
     return { s: s2, x: (size.w - b.w * s2) / 2 - b.x * s2, y: s2 === s ? (size.h - b.h * s2) / 2 - b.y * s2 : PAD };
   }, [view.bounds, size]);
   useEffect(() => { setCam(fit()); }, [view.id, fit]);
