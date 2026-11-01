@@ -1,0 +1,7 @@
+{
+  "name": "@acme/api",
+  "private": true,
+  "main": "index.ts",
+  "scripts": { "start": "tsx index.ts" },
+  "dependencies": { "express": "^4.19.0", "pg": "^8.11.0", "stripe": "^14.0.0", "@sendgrid/mail": "^8.1.0" }
+}

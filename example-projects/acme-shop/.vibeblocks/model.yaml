@@ -1,0 +1,151 @@
+# VibeBlocks C4 model. Edited by your agent through VibeBlocks; commit it with the code.
+version: 1
+system:
+  id: acme-shop
+  name: Acme Shop
+  description: Online store where shoppers sign in, fill a cart and pay.
+people:
+  - id: shopper
+    name: Shopper
+    description: Signs in and buys products.
+externals:
+  - id: stripe
+    name: Stripe
+    description: Charges and refunds card payments.
+    technology: Stripe API
+  - id: sendgrid
+    name: SendGrid
+    description: Delivers password-reset emails.
+    technology: SendGrid API
+containers:
+  - id: web
+    name: Web App
+    type: web-app
+    description: The pages shoppers use to sign in and check out.
+    technology: React
+    path: web
+    components:
+      - id: sign-in
+        name: Sign-in page
+        description: Asks for email and password and keeps the session token.
+        code:
+          - file: web/App.tsx
+            symbol: App
+          - file: web/App.tsx
+            symbol: LoginForm
+      - id: cart
+        name: Shopping cart
+        description: Shows cart items and the total and sends the order.
+        code:
+          - file: web/Cart.tsx
+            symbol: Cart
+  - id: api
+    name: API Server
+    type: api
+    description: Handles sign-in, orders and payments over HTTP.
+    technology: Node.js, Express
+    path: api
+    components:
+      - id: routes
+        name: HTTP routes
+        description: Maps each URL to the code that handles it.
+        code:
+          - file: api/index.ts
+      - id: auth
+        name: Login & sessions
+        description: Checks passwords, keeps sessions and sends password-reset links.
+        code:
+          - file: api/auth.ts
+            symbol: AuthController
+      - id: users
+        name: User accounts
+        description: Looks up and saves user records.
+        code:
+          - file: api/users.ts
+            symbol: UserRepository
+          - file: api/db.ts
+            symbol: db
+      - id: orders
+        name: Orders
+        description: Totals a cart, charges it and records or cancels the order.
+        code:
+          - file: api/orders.ts
+            symbol: OrderService
+      - id: payments
+        name: Payments
+        description: Charges and refunds cards through Stripe.
+        code:
+          - file: api/payments.ts
+            symbol: PaymentClient
+      - id: email
+        name: Email sending
+        description: Sends transactional emails such as password resets.
+        code:
+          - file: api/lib/mail.ts
+            symbol: sendEmail
+  - id: db
+    name: Database
+    type: database
+    description: Stores users, products and orders.
+    technology: PostgreSQL
+    path: db
+    components: []
+relationships:
+  - from: shopper
+    to: sign-in
+    kind: uses
+    description: signs in
+  - from: shopper
+    to: cart
+    kind: uses
+    description: checks out
+  - from: sign-in
+    to: routes
+    kind: request
+    description: logs in
+    technology: POST /api/login
+  - from: cart
+    to: routes
+    kind: request
+    description: places order
+    technology: POST /api/orders
+  - from: routes
+    to: auth
+    kind: internal
+    description: login, logout, reset
+  - from: routes
+    to: orders
+    kind: internal
+    description: create, cancel order
+  - from: auth
+    to: users
+    kind: internal
+    description: looks up user
+  - from: auth
+    to: email
+    kind: internal
+    description: sends reset link
+  - from: orders
+    to: payments
+    kind: internal
+    description: charges, refunds
+  - from: orders
+    to: db
+    kind: data
+    description: saves orders
+    technology: SQL
+  - from: users
+    to: db
+    kind: data
+    description: reads, writes users
+    technology: SQL
+  - from: payments
+    to: stripe
+    kind: external
+    description: charges cards
+    technology: HTTPS
+  - from: email
+    to: sendgrid
+    kind: external
+    description: sends email
+    technology: HTTPS

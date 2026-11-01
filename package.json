@@ -1,0 +1,36 @@
+{
+  "name": "vibeblocks",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Interactive C4 map of your code, drawn and kept current by your coding agent.",
+  "license": "MIT",
+  "scripts": {
+    "build": "vite build && node scripts/build-server.mjs",
+    "dev": "node --import tsx dev/serve.ts",
+    "test": "node --import tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit -p .",
+    "mcp": "node --import tsx src/mcp/server.ts",
+    "test:e2e": "npm run build && node --import tsx test/mcp.e2e.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "^1.7.5",
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "likec4": "^1.60.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vite-plugin-singlefile": "^2.3.4"
+  }
+}
