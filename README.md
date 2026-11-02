@@ -11,7 +11,9 @@ the diagram as dashed boxes, and you approve, change or reject it there.
 
 **Who it's for:** people who already use AI as part of their programming process but still want to
 understand, and have more agency over, what they build: students, designers, founders, developers new
-to a codebase. **When they'd use it:** when they open a project
+to a codebase. 
+
+**When they'd use it:** when they open a project
 they didn't write (or that the agent wrote), when something breaks and they need to find where, and
 before they let the agent make a big change.
 
@@ -23,8 +25,6 @@ Setup takes about 5 minutes. Each task below takes 2 to 5 minutes.
   your own Claude account.
 - **Node.js 20 or later.** Check with `node --version`. If you don't have it, install it from
   [nodejs.org](https://nodejs.org).
-- **Access to this GitHub repository.** We've invited you as a collaborator: accept the invite in your
-  email or at [github.com/notifications](https://github.com/notifications).
 
 ## Set up
 
