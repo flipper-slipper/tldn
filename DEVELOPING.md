@@ -98,6 +98,8 @@ src/
     likec4.ts          THE ONLY LikeC4 import: model → LikeC4 DSL → layouted views → our types
   service.ts         tool handlers shared by the MCP server and the dev page (one function per tool)
   guide.ts           what get_guide returns: levels, rules, op reference, example, workflow
+  help.ts            the user's quick guide: the map's ? panel and get_help (/vibeblocks:help) both show it
+  browser.ts         the view-only map in a browser tab, served by the MCP server (open_in_browser)
   mcp/server.ts      the MCP server (stdio): tools, the ui:// resource, app-only tools
   ui/                React app bundled into one HTML file
     App.tsx            header, proposal bar, diagram (pan/zoom, boxes, arrows), side panel, code view
@@ -178,7 +180,15 @@ To see what's going wrong: `~/Library/Logs/Claude/mcp-server-vibeblocks.log`.
 | `update_model {path?, ops}` | agent | Applies operations all-or-nothing; returns errors, or warnings plus the readback |
 | `propose_change {path?, summary, ops}` | agent | Saves a proposal; the diagram draws it dashed |
 | `apply_proposal` / `discard_proposal` | agent | After the change is built / when the user rejects it |
+| `open_in_browser {path?}` | agent and map | Serves the map, view-only, on `127.0.0.1` (random port, a token per project in the link) and opens it in the default browser. `VIBEBLOCKS_NO_BROWSER=1` returns the link without opening it |
+| `get_help` | agent | The user's quick guide (`src/help.ts`) as Markdown |
 | `get_views`, `read_code` | map only | Hidden from the agent (`_meta.ui.visibility: ["app"]`) |
+
+`show_map` also sends the map's views and code in its result's `_meta`, so the map still works in
+hosts that render it but block its calls back (the Claude desktop app's Code tab).
+
+The plugin's commands are `/vibeblocks:map`, `/vibeblocks:open` and `/vibeblocks:help`
+(`plugin/commands/`).
 
 The project folder is the tool's `path`, else `VIBEBLOCKS_ROOT`, else the server's working directory.
 

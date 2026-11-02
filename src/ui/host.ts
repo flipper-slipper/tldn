@@ -1,21 +1,29 @@
-// Where the map runs: inside an MCP host (Claude, VS Code…) as an MCP App, or as a plain page
-// served by dev/serve.ts. The rest of the UI only talks to this interface.
+// Where the map runs: inside an MCP host (Claude, VS Code…) as an MCP App, in a browser tab served by
+// the MCP server (src/browser.ts, view-only), or as the dev page served by dev/serve.ts. The rest of
+// the UI only talks to this interface.
 import { App } from '@modelcontextprotocol/ext-apps';
 
 export interface Host {
-  kind: 'mcp' | 'dev';
+  kind: 'mcp' | 'browser' | 'dev';
   /** project folder the map is about (null = let the server decide) */
   root: string | null;
   focus: string | null;
   call<T = any>(tool: string, args?: Record<string, unknown>): Promise<T>;
+  /** false where the map can't reach the chat (the browser tab): no ask, approve or reject */
+  canAsk: boolean;
   /** post a message into the host's chat, as the user */
   send(text: string): Promise<void>;
   canExpand: boolean;
   expand(): Promise<void>;
+  /** null where the map is already in a browser */
+  openInBrowser: (() => Promise<void>) | null;
 }
 
 export async function connectHost(onToast: (msg: string) => void): Promise<Host> {
-  if (window.parent === window) return devHost(onToast);
+  if (window.parent === window) {
+    const token = new URLSearchParams(location.search).get('token');
+    return token ? browserHost(token) : devHost(onToast);
+  }
   const app = new App({ name: 'VibeBlocks', version: '0.1.0' }, {});
   // show_map's result carries the map's data, for hosts that refuse calls from the map (the Claude
   // desktop app's Code tab: "IPC not available"). Once a call fails, use only that snapshot.
@@ -40,6 +48,7 @@ export async function connectHost(onToast: (msg: string) => void): Promise<Host>
         return saved as any;
       }
     },
+    canAsk: true,
     async send(text) {
       const r = await app.sendMessage({ role: 'user', content: [{ type: 'text', text }] });
       if (r?.isError) onToast('The host did not accept the message.');
@@ -48,6 +57,17 @@ export async function connectHost(onToast: (msg: string) => void): Promise<Host>
     async expand() {
       const mode = app.getHostContext()?.displayMode === 'fullscreen' ? 'inline' : 'fullscreen';
       await app.requestDisplayMode({ mode });
+    },
+    async openInBrowser() {
+      // Ask the server directly; where the host blocks that, ask the agent to do it.
+      try {
+        const r: any = await app.callServerTool({ name: 'open_in_browser', arguments: host.root ? { path: host.root } : {} });
+        if (r.isError) throw new Error();
+        const out = r.structuredContent ?? JSON.parse(r.content?.[0]?.text ?? '{}');
+        onToast(out.opened ? 'Opened the map in your browser.' : out.note);
+      } catch {
+        await host.send('[VibeBlocks] Open this map in my browser: call open_in_browser.');
+      }
     },
   };
   const gotResult = new Promise<void>((resolve) => {
@@ -67,10 +87,30 @@ export async function connectHost(onToast: (msg: string) => void): Promise<Host>
   return host;
 }
 
+function browserHost(token: string): Host {
+  return {
+    kind: 'browser', root: null, focus: null,
+    async call(tool, args = {}) {
+      const r = await fetch('/api/tool', { method: 'POST', headers: { 'content-type': 'application/json', 'x-vibeblocks-token': token }, body: JSON.stringify({ tool, args }) })
+        .catch(() => { throw new Error('VibeBlocks stopped (Claude was closed or restarted). Run /vibeblocks:open again.'); });
+      const body = await r.json().catch(() => ({ error: 'VibeBlocks stopped. Run /vibeblocks:open again.' }));
+      if (!r.ok) throw new Error(body.error ?? 'tool failed');
+      return body;
+    },
+    canAsk: false,
+    async send() {},
+    canExpand: false,
+    async expand() {},
+    openInBrowser: null,
+  };
+}
+
 function devHost(onToast: (msg: string) => void): Host {
   const q = new URLSearchParams(location.search);
   return {
     kind: 'dev', root: q.get('path'), focus: q.get('focus'),
+    canAsk: true,
+    openInBrowser: null,
     async call(tool, args = {}) {
       const r = await fetch('/api/tool', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ tool, args: { ...(q.get('path') ? { path: q.get('path') } : {}), ...args } }) });
       const body = await r.json();

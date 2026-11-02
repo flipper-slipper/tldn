@@ -76,12 +76,19 @@ starting point for every task.
 - **Double-click** a box (or click the pill under it) to go one level deeper: system → apps and
   databases → parts of an app → code.
 - **← Zoom out** or the breadcrumbs at the top take you back up.
+- **Pinch** with two fingers on a trackpad: keep pinching into a box and it opens; pinch out past the
+  whole level to go back up. One pinch moves one level.
 - **Arrows** show what talks to what. **Dashed** boxes are either outside services (like Stripe) or
   changes that are proposed but not built yet.
 - **Ask the agent:** with something selected, use **Why is this here?**, **Explain**, or type your own
   question and press **Send to chat**. The question goes to Claude in the chat, already pointing at
   what you selected.
 - Code is read-only on the diagram. To change it, ask the agent.
+- **?** at the top right opens a quick guide to all of this at any time. `/vibeblocks:help` gives the
+  same guide in the chat.
+- **Open in browser** (or `/vibeblocks:open`) shows the map in a browser tab, where it can fill the
+  screen. The tab is view-only: you click around the diagram there and talk to Claude in the chat.
+  It updates by itself while Claude is running.
 
 ## Tasks
 

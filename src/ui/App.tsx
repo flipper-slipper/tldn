@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ComputedView, ViewEdge, ViewNode, Views } from '../engine/types';
 import type { Component, Model, Relationship } from '../model/schema';
 import type { Host } from './host';
+import { helpFor } from '../help';
 
 type Sel = { type: 'node' | 'edge'; id: string } | null;
 interface CodeOpen { component: string; ref: number }
@@ -20,7 +21,24 @@ export function MapApp({ host }: { host: Host }) {
   const [code, setCode] = useState<CodeOpen | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [help, setHelp] = useState(false);
   const last = useRef('');
+  const pinch = useRef(0);
+  // after any level change, ignore the rest of that pinch: one pinch moves one level
+  const settle = useRef(0);
+  const settling = () => {
+    if (Date.now() >= settle.current) return false;
+    settle.current = Math.max(settle.current, Date.now() + 300); // still pinching: keep waiting for the fingers to stop
+    return true;
+  };
+  useEffect(() => { settle.current = Date.now() + 600; pinch.current = 0; }, [viewId, code]);
+
+  // A pinch arrives as ctrl+wheel; without this the browser zooms the whole page instead of the map.
+  useEffect(() => {
+    const stop = (e: WheelEvent) => { if (e.ctrlKey) e.preventDefault(); };
+    window.addEventListener('wheel', stop, { passive: false });
+    return () => window.removeEventListener('wheel', stop);
+  }, []);
 
   const flash = useCallback((t: string) => { setToast(t); setTimeout(() => setToast(null), 3500); }, []);
   useEffect(() => {
@@ -69,6 +87,7 @@ export function MapApp({ host }: { host: Host }) {
 
   if (error) return <div className="center"><div className="card"><h3>VibeBlocks could not load the map</h3><p>{error}</p></div></div>;
   if (empty) return <EmptyState errors={empty.errors} host={host} />;
+  if (help) return <Help host={host} close={() => setHelp(false)} />;
   if (!data || !view || !model) return <div className="center muted">Loading map…</div>;
 
   const level = comp ? 4 : LEVEL[view.level];
@@ -90,6 +109,12 @@ export function MapApp({ host }: { host: Host }) {
   };
 
   const ask = (text: string) => host.send(text);
+  // pinching out on the code goes back up to the diagram
+  const pinchOutOfCode = (e: React.WheelEvent) => {
+    if (!e.ctrlKey || e.deltaY <= 0 || settling()) { pinch.current = 0; return; }
+    pinch.current += e.deltaY;
+    if (pinch.current > 40) { pinch.current = 0; zoomOut(); }
+  };
 
   return (
     <div className="app">
@@ -102,32 +127,34 @@ export function MapApp({ host }: { host: Host }) {
         </div>
         <div className="right">
           <span className="chip">Level {level} of 4 · {LEVEL_NAME[level]}</span>
-          {host.canExpand && <button className="btn sm" onClick={() => host.expand()}>⤢</button>}
+          {host.openInBrowser && <button className="btn sm" onClick={() => host.openInBrowser!()}>Open in browser</button>}
+          {host.canExpand && <button className="btn sm" title="Bigger" onClick={() => host.expand()}>⤢</button>}
+          <button className="btn sm" title="How to use the map" onClick={() => setHelp(true)}>?</button>
         </div>
       </header>
 
-      {data.proposal && <ProposalBar summary={data.proposal.summary} ask={ask} />}
+      {data.proposal && <ProposalBar summary={data.proposal.summary} ask={host.canAsk ? ask : null} />}
 
       <div className="body">
-        <main className="stage">
+        <main className="stage" onWheel={comp ? pinchOutOfCode : undefined}>
           {comp ? (
             <CodeView host={host} model={model} comp={comp} open={code!} setOpen={setCode} />
           ) : (
-            <Diagram view={view} sel={sel} setSel={setSel} open={open} />
+            <Diagram view={view} sel={sel} setSel={setSel} open={open} up={view.level !== 'context' ? zoomOut : undefined} settling={settling} />
           )}
           {notice && (
             <div className="overlay"><div className="card">
               <h3>⚠ {notice.title}</h3><p>{notice.text}</p>
               <div className="row">
                 <button className="btn dark" onClick={() => setNotice(null)}>Back to diagram</button>
-                <button className="btn" onClick={() => ask(contextLine(model, notice.id) + ' Where does our code talk to it, and why?')}>Ask the agent</button>
+                {host.canAsk && <button className="btn" onClick={() => ask(contextLine(model, notice.id) + ' Where does our code talk to it, and why?')}>Ask the agent</button>}
               </div>
             </div></div>
           )}
           {(view.level !== 'context' || comp) && <button className="btn zoomout" onClick={zoomOut}>← Zoom out</button>}
-          <div className="tip muted">{comp ? 'Code is read-only here: ask the agent to change it.' : 'Click to select · double-click (or the pill) to go one level deeper · dashed = proposed or external'}</div>
+          <div className="tip muted">{comp ? (host.canAsk ? 'Code is read-only here: ask the agent to change it.' : 'Code is read-only here: ask Claude in your chat to change it.') : 'Click to select · double-click (or the pill) to go one level deeper · dashed = proposed or external · ? for help'}</div>
         </main>
-        <Panel model={model} view={view} sel={sel} code={code} ask={ask} openCode={(id) => setCode({ component: id, ref: 0 })} />
+        <Panel model={model} view={view} sel={sel} code={code} ask={host.canAsk ? ask : null} openCode={(id) => setCode({ component: id, ref: 0 })} />
       </div>
       {toast && <div className="toast">{toast}</div>}
     </div>
@@ -136,7 +163,7 @@ export function MapApp({ host }: { host: Host }) {
 
 // ---------------------------------------------------------------- diagram
 
-function Diagram({ view, sel, setSel, open }: { view: ComputedView; sel: Sel; setSel: (s: Sel) => void; open: (n: ViewNode) => void }) {
+function Diagram({ view, sel, setSel, open, up, settling }: { view: ComputedView; sel: Sel; setSel: (s: Sel) => void; open: (n: ViewNode) => void; up?: () => void; settling: () => boolean }) {
   const box = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 800, h: 500 });
   const [cam, setCam] = useState<{ x: number; y: number; s: number } | null>(null);
@@ -160,13 +187,21 @@ function Diagram({ view, sel, setSel, open }: { view: ComputedView; sel: Sel; se
 
   const onWheel = (e: React.WheelEvent) => {
     if (e.ctrlKey || e.metaKey) {
+      if (settling()) return; // the rest of the pinch that just changed level
       const r = box.current!.getBoundingClientRect();
       const px = e.clientX - r.left, py = e.clientY - r.top;
-      const s = Math.min(2, Math.max(0.2, c.s * Math.exp(-e.deltaY * 0.01)));
+      const s = Math.min(3, Math.max(0.15, c.s * Math.exp(-e.deltaY * 0.01)));
+      // Pinch into a box until it nearly fills the map: open it. Pinch out past the fitted size: go up.
+      if (e.deltaY < 0) {
+        const wx = (px - c.x) / c.s, wy = (py - c.y) / c.s;
+        const n = view.nodes.find((k) => !k.frame && canDrill(k) && wx >= k.x && wx <= k.x + k.w && wy >= k.y && wy <= k.y + k.h);
+        if (n && (n.w * s > size.w * DRILL_FILL || n.h * s > size.h * DRILL_FILL || s >= 3)) return open(n);
+      } else if (up && s < fit().s * 0.75) return up();
       setCam({ s, x: px - (px - c.x) * (s / c.s), y: py - (py - c.y) * (s / c.s) });
     } else setCam({ ...c, x: c.x - e.deltaX, y: c.y - e.deltaY });
   };
   const nodes = [...view.nodes].sort((a, b) => Number(b.frame) - Number(a.frame));
+  const lines = useMemo(() => straightEdges(view), [view]);
   const selNode = sel?.type === 'node' ? view.nodes.find((n) => n.id === sel.id) : undefined;
   const related = (e: ViewEdge) => sel && (sel.type === 'edge' ? sel.id === e.id : e.from === sel.id || e.to === sel.id);
 
@@ -189,8 +224,8 @@ function Diagram({ view, sel, setSel, open }: { view: ComputedView; sel: Sel; se
             const m = e.status === 'proposed' ? 'p' : hl ? 'h' : 'n';
             return (
               <g key={e.id} className={`edge ${e.status ?? ''} ${e.kind === 'external' ? 'ext' : ''} ${hl ? 'hl' : ''} ${sel && !hl ? 'dim' : ''}`}>
-                <path d={pathOf(e.points)} markerEnd={`url(#arrow-${m})`} />
-                <path d={pathOf(e.points)} className="hit" onClick={(ev) => { ev.stopPropagation(); setSel({ type: 'edge', id: e.id }); }} />
+                <path d={lines.get(e.id)?.d ?? pathOf(e.points)} markerEnd={`url(#arrow-${m})`} />
+                <path d={lines.get(e.id)?.d ?? pathOf(e.points)} className="hit" style={{ strokeWidth: Math.max(18, 14 / c.s) }} onClick={(ev) => { ev.stopPropagation(); setSel({ type: 'edge', id: e.id }); }} />
               </g>
             );
           })}
@@ -213,12 +248,18 @@ function Diagram({ view, sel, setSel, open }: { view: ComputedView; sel: Sel; se
             )}
           </div>
         ))}
-        {view.edges.map((e) => e.labelBox && (
-          <div key={e.id} className={`elabel ${e.status ?? ''} ${sel && !related(e) ? 'dim' : ''}`} onClick={() => setSel({ type: 'edge', id: e.id })}
-            style={{ left: e.labelBox.x - 8, top: e.labelBox.y, width: e.labelBox.w + 16 }}>
-            <span>{e.label}</span>{e.technology && <small>[{e.technology}]</small>}
-          </div>
-        ))}
+        {view.edges.map((e) => {
+          const at = lines.get(e.id)?.mid ?? (e.labelBox && { x: e.labelBox.x + e.labelBox.w / 2, y: e.labelBox.y + e.labelBox.h / 2 });
+          // zoomed far out, labels are unreadable clutter (and, scaled up, cover boxes): show only the
+          // selected arrow's, at a readable size; the panel lists a selected box's arrows anyway
+          if (!at || (c.s < LABELS_MIN_ZOOM && !(sel?.type === 'edge' && sel.id === e.id))) return null;
+          return (
+            <div key={e.id} className={`elabel ${e.status ?? ''} ${sel && !related(e) ? 'dim' : ''}`} onClick={() => setSel({ type: 'edge', id: e.id })}
+              title={e.label} style={{ left: at.x, top: at.y, transform: `translate(-50%, -50%) scale(${Math.max(1, 0.85 / c.s)})` }}>
+              <span>{short(e.label, 64)}</span>{e.technology && <small>[{short(e.technology, 40)}]</small>}
+            </div>
+          );
+        })}
         {selNode && !selNode.frame && (selNode.zoomTo || selNode.kind !== 'person') && (
           <button className="pill" style={{ left: selNode.x + selNode.w / 2, top: selNode.y + selNode.h + 14 }} onClick={() => open(selNode)}>
             {selNode.zoomTo ? '↗ Zoom in' : selNode.kind === 'component' ? '‹/› Open code' : 'ⓘ Details'}
@@ -227,6 +268,50 @@ function Diagram({ view, sel, setSel, open }: { view: ComputedView; sel: Sel; se
       </div>
     </div>
   );
+}
+
+/** pinching into a box opens it once it covers this share of the map's width or height */
+const DRILL_FILL = 0.6;
+/** boxes a pinch can open: ones with a level below, and components with code (not proposed ones) */
+const canDrill = (n: ViewNode) => !!n.zoomTo || (n.kind === 'component' && n.code > 0 && n.status !== 'proposed');
+
+/** below this zoom, an arrow's label shows only when that arrow is selected */
+const LABELS_MIN_ZOOM = 0.6;
+
+const short = (t: string, max: number) => (t.length > max ? t.slice(0, max - 1).trimEnd() + '…' : t);
+
+/** Straight arrows from box edge to box edge (the layout's curves wander), and where each label
+ *  sits. Arrows between the same two boxes are spread apart so they don't overlap. */
+function straightEdges(view: ComputedView): Map<string, { d: string; mid: { x: number; y: number } }> {
+  const byId = new Map(view.nodes.map((n) => [n.id, n]));
+  const pairKey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`);
+  const pairs = new Map<string, ViewEdge[]>();
+  for (const e of view.edges) pairs.set(pairKey(e.from, e.to), [...(pairs.get(pairKey(e.from, e.to)) ?? []), e]);
+  const out = new Map<string, { d: string; mid: { x: number; y: number } }>();
+  for (const e of view.edges) {
+    const a = byId.get(e.from), b = byId.get(e.to);
+    if (!a || !b) continue;
+    const ca = { x: a.x + a.w / 2, y: a.y + a.h / 2 }, cb = { x: b.x + b.w / 2, y: b.y + b.h / 2 };
+    const len = Math.hypot(cb.x - ca.x, cb.y - ca.y) || 1;
+    const nx = -(cb.y - ca.y) / len, ny = (cb.x - ca.x) / len; // unit normal
+    const group = pairs.get(pairKey(e.from, e.to))!;
+    // keep the normal pointing the same way for both directions, so A→B and B→A separate
+    const flip = e.from < e.to ? 1 : -1;
+    const off = (group.indexOf(e) - (group.length - 1) / 2) * 22 * flip;
+    const pa = { x: ca.x + nx * off, y: ca.y + ny * off }, pb = { x: cb.x + nx * off, y: cb.y + ny * off };
+    const s = exitPoint(a, pa, pb), t = exitPoint(b, pb, pa);
+    out.set(e.id, { d: `M${s.x},${s.y} L${t.x},${t.y}`, mid: { x: (s.x + t.x) / 2, y: (s.y + t.y) / 2 } });
+  }
+  return out;
+}
+
+/** Where the line from `from` toward `to` leaves box `n`. */
+function exitPoint(n: ViewNode, from: { x: number; y: number }, to: { x: number; y: number }) {
+  const dx = to.x - from.x, dy = to.y - from.y;
+  const tx = dx ? Math.abs((dx > 0 ? n.x + n.w - from.x : from.x - n.x) / dx) : Infinity;
+  const ty = dy ? Math.abs((dy > 0 ? n.y + n.h - from.y : from.y - n.y) / dy) : Infinity;
+  const k = Math.min(tx, ty, 1);
+  return { x: from.x + dx * k, y: from.y + dy * k };
 }
 
 function pathOf(p: [number, number][]): string {
@@ -246,13 +331,13 @@ function metaOf(n: ViewNode): string {
 
 // ---------------------------------------------------------------- side panel
 
-function Panel({ model, view, sel, code, ask, openCode }: { model: Model; view: ComputedView; sel: Sel; code: CodeOpen | null; ask: (t: string) => void; openCode: (id: string) => void }) {
+function Panel({ model, view, sel, code, ask, openCode }: { model: Model; view: ComputedView; sel: Sel; code: CodeOpen | null; ask: ((t: string) => void) | null; openCode: (id: string) => void }) {
   const [q, setQ] = useState('');
   const node = sel?.type === 'node' ? view.nodes.find((n) => n.id === sel.id) : undefined;
   const edge = sel?.type === 'edge' ? view.edges.find((e) => e.id === sel.id) : undefined;
   const focusId = node?.id ?? code?.component ?? null;
   const subject = focusId ? contextLine(model, focusId) : edge ? `[VibeBlocks] The arrow ${nameOf(model, edge.from)} → ${nameOf(model, edge.to)} ("${edge.label}").` : `[VibeBlocks] About the ${view.title} diagram of ${model.system.name}.`;
-  const send = (t: string) => { ask(`${subject} ${t}`); setQ(''); };
+  const send = (t: string) => { ask?.(`${subject} ${t}`); setQ(''); };
 
   return (
     <aside className="panel">
@@ -260,7 +345,7 @@ function Panel({ model, view, sel, code, ask, openCode }: { model: Model; view: 
         : edge ? <EdgeDetails model={model} e={edge} />
         : code ? <NodeDetails model={model} n={{ id: code.component } as ViewNode} openCode={openCode} />
         : <Overview model={model} view={view} />}
-      <div className="ask">
+      {ask && <div className="ask">
         <div className="presets">
           {(node || code) && <button className="btn sm" onClick={() => send('Why is this here, and how does it affect the rest of the system?')}>Why is this here?</button>}
           {(node || code) && <button className="btn sm" onClick={() => send('Explain how it works, step by step.')}>Explain</button>}
@@ -270,7 +355,7 @@ function Panel({ model, view, sel, code, ask, openCode }: { model: Model; view: 
         <textarea value={q} onChange={(e) => setQ(e.target.value)} placeholder={node ? `Ask or tell the agent about ${node.name}…` : 'Ask the agent…'}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && q.trim()) { e.preventDefault(); send(q.trim()); } }} />
         <button className="btn dark" disabled={!q.trim()} onClick={() => send(q.trim())}>Send to chat</button>
-      </div>
+      </div>}
     </aside>
   );
 }
@@ -385,13 +470,15 @@ function CodeView({ host, model, comp, open, setOpen }: { host: Host; model: Mod
 
 // ---------------------------------------------------------------- bits
 
-function ProposalBar({ summary, ask }: { summary: string; ask: (t: string) => void }) {
+function ProposalBar({ summary, ask }: { summary: string; ask: ((t: string) => void) | null }) {
   const [modify, setModify] = useState(false);
   const [text, setText] = useState('');
   return (
     <div className="proposal">
       <div className="ptext"><b>Proposed plan:</b> {summary} <span className="muted">· dashed = proposed, nothing changed yet</span></div>
-      {modify ? (
+      {!ask ? (
+        <div className="row muted">Approve, change or reject it in your Claude chat.</div>
+      ) : modify ? (
         <div className="row">
           <input autoFocus value={text} onChange={(e) => setText(e.target.value)} placeholder="What should change in the plan?" onKeyDown={(e) => { if (e.key === 'Enter' && text.trim()) { ask(`[VibeBlocks] Modify the proposal "${summary}": ${text.trim()} Update it with propose_change.`); setModify(false); setText(''); } }} />
           <button className="btn sm" onClick={() => setModify(false)}>Cancel</button>
@@ -412,12 +499,33 @@ function EmptyState({ errors, host }: { errors?: any[]; host: Host }) {
     <div className="center"><div className="card">
       {errors?.length ? (
         <><h3>The model has errors</h3><ul>{errors.map((e, i) => <li key={i}><code>{e.path}</code> {e.message}</li>)}</ul>
-          <button className="btn dark" onClick={() => host.send('[VibeBlocks] The architecture model has errors. Call get_model and fix them with update_model.')}>Ask the agent to fix it</button></>
+          {host.canAsk ? <button className="btn dark" onClick={() => host.send('[VibeBlocks] The architecture model has errors. Call get_model and fix them with update_model.')}>Ask the agent to fix it</button>
+            : <p>Run <code>/vibeblocks:map</code> in your Claude chat to fix it.</p>}</>
       ) : (
         <><h3>No map yet</h3><p>This project has no VibeBlocks model.</p>
-          <button className="btn dark" onClick={() => host.send('[VibeBlocks] Map this project: call get_guide, read the code, then build the C4 model with update_model and show_map.')}>Ask the agent to map it</button></>
+          {host.canAsk ? <button className="btn dark" onClick={() => host.send('[VibeBlocks] Map this project: call get_guide, read the code, then build the C4 model with update_model and show_map.')}>Ask the agent to map it</button>
+            : <p>Run <code>/vibeblocks:map</code> in your Claude chat to draw it.</p>}</>
       )}
     </div></div>
+  );
+}
+
+function Help({ host, close }: { host: Host; close: () => void }) {
+  // **bold** and `code` only: that's all the help text uses
+  const rich = (t: string) => t.split(/(\*\*[^*]+\*\*|`[^`]+`)/).map((p, i) =>
+    p.startsWith('**') ? <b key={i}>{p.slice(2, -2)}</b> : p.startsWith('`') ? <code key={i}>{p.slice(1, -1)}</code> : p);
+  return (
+    <div className="help">
+      <header className="top">
+        <div className="titles"><h1>Using VibeBlocks</h1></div>
+        <div className="right"><button className="btn dark sm" onClick={close}>Back to the map</button></div>
+      </header>
+      <div className="help-body">
+        {helpFor(host.kind === 'browser' ? 'browser' : 'chat').map((s) => (
+          <section key={s.title}><h3>{s.title}</h3><ul>{s.lines.map((l, i) => <li key={i}>{rich(l.text)}</li>)}</ul></section>
+        ))}
+      </div>
+    </div>
   );
 }
 

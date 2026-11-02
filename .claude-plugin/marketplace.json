@@ -7,7 +7,7 @@
       "name": "vibeblocks",
       "source": "./plugin",
       "description": "Interactive C4 diagram of your code, drawn by your agent and shown in the chat.",
-      "version": "0.1.1"
+      "version": "0.2.0"
     }
   ]
 }

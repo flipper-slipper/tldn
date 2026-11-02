@@ -165,9 +165,9 @@ function nullish(input2) {
   return input2 === null || input2 === void 0;
 }
 function cleanRegex(source) {
-  const start = source.startsWith("^") ? 1 : 0;
+  const start2 = source.startsWith("^") ? 1 : 0;
   const end = source.endsWith("$") ? source.length - 1 : source.length;
-  return source.slice(start, end);
+  return source.slice(start2, end);
 }
 function floatSafeRemainder2(val, step) {
   const ratio = val / step;
@@ -556,9 +556,9 @@ function sizeCaps(defChecks) {
   }
   return caps;
 }
-function attachSchema(issues, start, inst) {
+function attachSchema(issues, start2, inst) {
   var _a4;
-  for (let i26 = start; i26 < issues.length; i26++) {
+  for (let i26 = start2; i26 < issues.length; i26++) {
     (_a4 = issues[i26]).schema ?? (_a4.schema = inst);
   }
 }
@@ -2292,10 +2292,10 @@ function capSize(inst, size) {
     if (n26 > cap && !ctx?.skipChecks && ctx?.direction !== "backward") {
       for (const [max, ch] of sizeCaps(inst._zod.def.checks)) {
         if (n26 > max && ch._zod.def.when(payload)) {
-          const start = payload.issues.length;
+          const start2 = payload.issues.length;
           ch._zod.check(payload);
-          payload.issues[start].continue = false;
-          attachSchema(payload.issues, start, inst);
+          payload.issues[start2].continue = false;
+          attachSchema(payload.issues, start2, inst);
           return payload;
         }
       }
@@ -24196,7 +24196,7 @@ var require_schemes = __commonJS({
       urnComponent.nss = (uuidComponent.uuid || "").toLowerCase();
       return urnComponent;
     }
-    var http = (
+    var http2 = (
       /** @type {SchemeHandler} */
       {
         scheme: "http",
@@ -24209,7 +24209,7 @@ var require_schemes = __commonJS({
       /** @type {SchemeHandler} */
       {
         scheme: "https",
-        domainHost: http.domainHost,
+        domainHost: http2.domainHost,
         parse: httpParse,
         serialize: httpSerialize
       }
@@ -24253,7 +24253,7 @@ var require_schemes = __commonJS({
     var SCHEMES = (
       /** @type {Record<SchemeName, SchemeHandler>} */
       {
-        http,
+        http: http2,
         https,
         ws: ws2,
         wss,
@@ -28760,18 +28760,18 @@ ${indent3}${text5.slice(fold + 1, end2)}`;
     }
     function consumeMoreIndentedLines(text5, i26, indent3) {
       let end = i26;
-      let start = i26 + 1;
-      let ch = text5[start];
+      let start2 = i26 + 1;
+      let ch = text5[start2];
       while (ch === " " || ch === "	") {
-        if (i26 < start + indent3) {
+        if (i26 < start2 + indent3) {
           ch = text5[++i26];
         } else {
           do {
             ch = text5[++i26];
           } while (ch && ch !== "\n");
           end = i26;
-          start = i26 + 1;
-          ch = text5[start];
+          start2 = i26 + 1;
+          ch = text5[start2];
         }
       }
       return end;
@@ -28802,12 +28802,12 @@ var require_stringifyString = __commonJS({
       const strLen = str.length;
       if (strLen <= limit)
         return false;
-      for (let i26 = 0, start = 0; i26 < strLen; ++i26) {
+      for (let i26 = 0, start2 = 0; i26 < strLen; ++i26) {
         if (str[i26] === "\n") {
-          if (i26 - start > limit)
+          if (i26 - start2 > limit)
             return true;
-          start = i26 + 1;
-          if (strLen - start <= limit)
+          start2 = i26 + 1;
+          if (strLen - start2 <= limit)
             return false;
         }
       }
@@ -28821,19 +28821,19 @@ var require_stringifyString = __commonJS({
       const minMultiLineLength = ctx.options.doubleQuotedMinMultiLineLength;
       const indent3 = ctx.indent || (containsDocumentMarker(value) ? "  " : "");
       let str = "";
-      let start = 0;
+      let start2 = 0;
       for (let i26 = 0, ch = json4[i26]; ch; ch = json4[++i26]) {
         if (ch === " " && json4[i26 + 1] === "\\" && json4[i26 + 2] === "n") {
-          str += json4.slice(start, i26) + "\\ ";
+          str += json4.slice(start2, i26) + "\\ ";
           i26 += 1;
-          start = i26;
+          start2 = i26;
           ch = "\\";
         }
         if (ch === "\\")
           switch (json4[i26 + 1]) {
             case "u":
               {
-                str += json4.slice(start, i26);
+                str += json4.slice(start2, i26);
                 const code2 = json4.substr(i26 + 2, 4);
                 switch (code2) {
                   case "0000":
@@ -28867,14 +28867,14 @@ var require_stringifyString = __commonJS({
                       str += json4.substr(i26, 6);
                 }
                 i26 += 5;
-                start = i26 + 1;
+                start2 = i26 + 1;
               }
               break;
             case "n":
               if (implicitKey || json4[i26 + 2] === '"' || json4.length < minMultiLineLength) {
                 i26 += 1;
               } else {
-                str += json4.slice(start, i26) + "\n\n";
+                str += json4.slice(start2, i26) + "\n\n";
                 while (json4[i26 + 2] === "\\" && json4[i26 + 3] === "n" && json4[i26 + 4] !== '"') {
                   str += "\n";
                   i26 += 2;
@@ -28883,14 +28883,14 @@ var require_stringifyString = __commonJS({
                 if (json4[i26 + 2] === " ")
                   str += "\\";
                 i26 += 1;
-                start = i26 + 1;
+                start2 = i26 + 1;
               }
               break;
             default:
               i26 += 1;
           }
       }
-      str = start ? str + json4.slice(start) : json4;
+      str = start2 ? str + json4.slice(start2) : json4;
       return implicitKey ? str : foldFlowLines.foldFlowLines(str, indent3, foldFlowLines.FOLD_QUOTED, getFoldOptions(ctx, false));
     }
     function singleQuotedString(value, ctx) {
@@ -28969,10 +28969,10 @@ ${indent3}`) + "'";
         else
           break;
       }
-      let start = value.substring(0, startNlPos < startEnd ? startNlPos + 1 : startEnd);
-      if (start) {
-        value = value.substring(start.length);
-        start = start.replace(/\n+/g, `$&${indent3}`);
+      let start2 = value.substring(0, startNlPos < startEnd ? startNlPos + 1 : startEnd);
+      if (start2) {
+        value = value.substring(start2.length);
+        start2 = start2.replace(/\n+/g, `$&${indent3}`);
       }
       const indentSize = indent3 ? "2" : "1";
       let header = (startWithSpace ? indentSize : "") + chomp;
@@ -28990,14 +28990,14 @@ ${indent3}`) + "'";
             literalFallback = true;
           };
         }
-        const body3 = foldFlowLines.foldFlowLines(`${start}${foldedValue}${end}`, indent3, foldFlowLines.FOLD_BLOCK, foldOptions);
+        const body3 = foldFlowLines.foldFlowLines(`${start2}${foldedValue}${end}`, indent3, foldFlowLines.FOLD_BLOCK, foldOptions);
         if (!literalFallback)
           return `>${header}
 ${indent3}${body3}`;
       }
       value = value.replace(/\n+/g, `$&${indent3}`);
       return `|${header}
-${indent3}${start}${value}${end}`;
+${indent3}${start2}${value}${end}`;
     }
     function plainString(item, ctx, onComment, onChompKeep) {
       const { type, value } = item;
@@ -29628,23 +29628,23 @@ ${indent3}${line}` : "\n";
         lines2.push(str);
         linesAtValue = lines2.length;
       }
-      const { start, end } = flowChars;
+      const { start: start2, end } = flowChars;
       if (lines2.length === 0) {
-        return start + end;
+        return start2 + end;
       } else {
         if (!reqNewline) {
           const len = lines2.reduce((sum, line) => sum + line.length + 2, 2);
           reqNewline = ctx.options.lineWidth > 0 && len > ctx.options.lineWidth;
         }
         if (reqNewline) {
-          let str = start;
+          let str = start2;
           for (const line of lines2)
             str += line ? `
 ${indentStep}${indent3}${line}` : "\n";
           return `${str}
 ${indent3}${end}`;
         } else {
-          return `${start}${fcPadding}${lines2.join(" ")}${fcPadding}${end}`;
+          return `${start2}${fcPadding}${lines2.join(" ")}${fcPadding}${end}`;
         }
       }
     }
@@ -31439,7 +31439,7 @@ var require_resolve_props = __commonJS({
       let newlineAfterProp = null;
       let comma = null;
       let found = null;
-      let start = null;
+      let start2 = null;
       for (const token of tokens) {
         if (reqSpace) {
           if (token.type !== "space" && token.type !== "newline" && token.type !== "comma")
@@ -31491,7 +31491,7 @@ var require_resolve_props = __commonJS({
             if (token.source.endsWith(":"))
               onError(token.offset + token.source.length - 1, "BAD_ALIAS", "Anchor ending in : is ambiguous", true);
             anchor2 = token;
-            start ?? (start = token.offset);
+            start2 ?? (start2 = token.offset);
             atNewline = false;
             hasSpace = false;
             reqSpace = true;
@@ -31500,7 +31500,7 @@ var require_resolve_props = __commonJS({
             if (tag)
               onError(token, "MULTIPLE_TAGS", "A node can have at most one tag");
             tag = token;
-            start ?? (start = token.offset);
+            start2 ?? (start2 = token.offset);
             atNewline = false;
             hasSpace = false;
             reqSpace = true;
@@ -31548,7 +31548,7 @@ var require_resolve_props = __commonJS({
         tag,
         newlineAfterProp,
         end,
-        start: start ?? end
+        start: start2 ?? end
       };
     }
     exports2.resolveProps = resolveProps;
@@ -31650,8 +31650,8 @@ var require_resolve_block_map = __commonJS({
       let offset = bm.offset;
       let commentEnd = null;
       for (const collItem of bm.items) {
-        const { start, key, sep: sep2, value } = collItem;
-        const keyProps = resolveProps.resolveProps(start, {
+        const { start: start2, key, sep: sep2, value } = collItem;
+        const keyProps = resolveProps.resolveProps(start2, {
           indicator: "explicit-key-ind",
           next: key ?? sep2?.[0],
           offset,
@@ -31678,14 +31678,14 @@ var require_resolve_block_map = __commonJS({
             continue;
           }
           if (keyProps.newlineAfterProp || utilContainsNewline.containsNewline(key)) {
-            onError(key ?? start[start.length - 1], "MULTILINE_IMPLICIT_KEY", "Implicit keys need to be on a single line");
+            onError(key ?? start2[start2.length - 1], "MULTILINE_IMPLICIT_KEY", "Implicit keys need to be on a single line");
           }
         } else if (keyProps.found?.indent !== bm.indent) {
           onError(offset, "BAD_INDENT", startColMsg);
         }
         ctx.atKey = true;
         const keyStart = keyProps.end;
-        const keyNode = key ? composeNode(ctx, key, keyProps, onError) : composeEmptyNode(ctx, keyStart, start, null, keyProps, onError);
+        const keyNode = key ? composeNode(ctx, key, keyProps, onError) : composeEmptyNode(ctx, keyStart, start2, null, keyProps, onError);
         if (ctx.schema.compat)
           utilFlowIndentCheck.flowIndentCheck(bm.indent, key, onError);
         ctx.atKey = false;
@@ -31755,8 +31755,8 @@ var require_resolve_block_seq = __commonJS({
         ctx.atKey = false;
       let offset = bs2.offset;
       let commentEnd = null;
-      for (const { start, value } of bs2.items) {
-        const props = resolveProps.resolveProps(start, {
+      for (const { start: start2, value } of bs2.items) {
+        const props = resolveProps.resolveProps(start2, {
           indicator: "seq-item-ind",
           next: value,
           offset,
@@ -31777,7 +31777,7 @@ var require_resolve_block_seq = __commonJS({
             continue;
           }
         }
-        const node4 = value ? composeNode(ctx, value, props, onError) : composeEmptyNode(ctx, props.end, start, null, props, onError);
+        const node4 = value ? composeNode(ctx, value, props, onError) : composeEmptyNode(ctx, props.end, start2, null, props, onError);
         if (ctx.schema.compat)
           utilFlowIndentCheck.flowIndentCheck(bs2.indent, value, onError);
         offset = node4.range[2];
@@ -31861,8 +31861,8 @@ var require_resolve_flow_collection = __commonJS({
       let offset = fc2.offset + fc2.start.source.length;
       for (let i26 = 0; i26 < fc2.items.length; ++i26) {
         const collItem = fc2.items[i26];
-        const { start, key, sep: sep2, value } = collItem;
-        const props = resolveProps.resolveProps(start, {
+        const { start: start2, key, sep: sep2, value } = collItem;
+        const props = resolveProps.resolveProps(start2, {
           flow: fcName,
           indicator: "explicit-key-ind",
           next: key ?? sep2?.[0],
@@ -31902,7 +31902,7 @@ var require_resolve_flow_collection = __commonJS({
             onError(props.start, "MISSING_CHAR", `Missing , between ${fcName} items`);
           if (props.comment) {
             let prevItemComment = "";
-            loop: for (const st4 of start) {
+            loop: for (const st4 of start2) {
               switch (st4.type) {
                 case "comma":
                 case "space":
@@ -31935,7 +31935,7 @@ var require_resolve_flow_collection = __commonJS({
         } else {
           ctx.atKey = true;
           const keyStart = props.end;
-          const keyNode = key ? composeNode(ctx, key, props, onError) : composeEmptyNode(ctx, keyStart, start, null, props, onError);
+          const keyNode = key ? composeNode(ctx, key, props, onError) : composeEmptyNode(ctx, keyStart, start2, null, props, onError);
           if (isBlock(key))
             onError(keyNode.range, "BLOCK_IN_FLOW", blockMsg);
           ctx.atKey = false;
@@ -32098,10 +32098,10 @@ var require_resolve_block_scalar = __commonJS({
     "use strict";
     var Scalar = require_Scalar();
     function resolveBlockScalar(ctx, scalar, onError) {
-      const start = scalar.offset;
+      const start2 = scalar.offset;
       const header = parseBlockScalarHeader(scalar, ctx.options.strict, onError);
       if (!header)
-        return { value: "", type: null, comment: "", range: [start, start, start] };
+        return { value: "", type: null, comment: "", range: [start2, start2, start2] };
       const type = header.mode === ">" ? Scalar.Scalar.BLOCK_FOLDED : Scalar.Scalar.BLOCK_LITERAL;
       const lines2 = scalar.source ? splitLines(scalar.source) : [];
       let chompStart = lines2.length;
@@ -32114,10 +32114,10 @@ var require_resolve_block_scalar = __commonJS({
       }
       if (chompStart === 0) {
         const value2 = header.chomp === "+" && lines2.length > 0 ? "\n".repeat(Math.max(1, lines2.length - 1)) : "";
-        let end2 = start + header.length;
+        let end2 = start2 + header.length;
         if (scalar.source)
           end2 += scalar.source.length;
-        return { value: value2, type, comment: header.comment, range: [start, end2, end2] };
+        return { value: value2, type, comment: header.comment, range: [start2, end2, end2] };
       }
       let trimIndent = scalar.indent + header.indent;
       let offset = scalar.offset + header.length;
@@ -32198,8 +32198,8 @@ var require_resolve_block_scalar = __commonJS({
         default:
           value += "\n";
       }
-      const end = start + header.length + scalar.source.length;
-      return { value, type, comment: header.comment, range: [start, end, end] };
+      const end = start2 + header.length + scalar.source.length;
+      return { value, type, comment: header.comment, range: [start2, end, end] };
     }
     function parseBlockScalarHeader({ offset, props }, strict, onError) {
       if (props[0].type !== "block-scalar-header") {
@@ -32721,7 +32721,7 @@ var require_compose_doc = __commonJS({
     var composeNode = require_compose_node();
     var resolveEnd = require_resolve_end();
     var resolveProps = require_resolve_props();
-    function composeDoc(options, directives, { offset, start, value, end }, onError) {
+    function composeDoc(options, directives, { offset, start: start2, value, end }, onError) {
       const opts = Object.assign({ _directives: directives }, options);
       const doc = new Document.Document(void 0, opts);
       const ctx = {
@@ -32731,7 +32731,7 @@ var require_compose_doc = __commonJS({
         options: doc.options,
         schema: doc.schema
       };
-      const props = resolveProps.resolveProps(start, {
+      const props = resolveProps.resolveProps(start2, {
         indicator: "doc-start",
         next: value ?? end?.[0],
         offset,
@@ -32744,7 +32744,7 @@ var require_compose_doc = __commonJS({
         if (value && (value.type === "block-map" || value.type === "block-seq") && !props.hasNewline)
           onError(props.end, "MISSING_CHAR", "Block collection cannot start on same line with directives-end marker");
       }
-      doc.contents = value ? composeNode.composeNode(ctx, value, props, onError) : composeNode.composeEmptyNode(ctx, props.end, start, null, props, onError);
+      doc.contents = value ? composeNode.composeNode(ctx, value, props, onError) : composeNode.composeEmptyNode(ctx, props.end, start2, null, props, onError);
       const contentEnd = doc.contents.range[2];
       const re6 = resolveEnd.resolveEnd(end, contentEnd, false, onError);
       if (re6.comment)
@@ -33193,9 +33193,9 @@ var require_cst_stringify = __commonJS({
         }
       }
     }
-    function stringifyItem({ start, key, sep: sep2, value }) {
+    function stringifyItem({ start: start2, key, sep: sep2, value }) {
       let res = "";
-      for (const st4 of start)
+      for (const st4 of start2)
         res += st4.source;
       if (key)
         res += stringifyToken(key);
@@ -33985,8 +33985,8 @@ var require_line_counter = __commonJS({
             return { line: low + 1, col: 1 };
           if (low === 0)
             return { line: 0, col: offset };
-          const start = this.lineStarts[low - 1];
-          return { line: low, col: offset - start + 1 };
+          const start2 = this.lineStarts[low - 1];
+          return { line: low, col: offset - start2 + 1 };
         };
       }
     };
@@ -34366,7 +34366,7 @@ var require_parser = __commonJS({
       *scalar(scalar) {
         if (this.type === "map-value-ind") {
           const prev = getPrevProps(this.peek(2));
-          const start = getFirstKeyStartProps(prev);
+          const start2 = getFirstKeyStartProps(prev);
           let sep2;
           if (scalar.end) {
             sep2 = scalar.end;
@@ -34378,7 +34378,7 @@ var require_parser = __commonJS({
             type: "block-map",
             offset: scalar.offset,
             indent: scalar.indent,
-            items: [{ start, key: scalar, sep: sep2 }]
+            items: [{ start: start2, key: scalar, sep: sep2 }]
           };
           this.onKeyLine = true;
           this.stack[this.stack.length - 1] = map4;
@@ -34453,7 +34453,7 @@ var require_parser = __commonJS({
         if (this.indent >= map4.indent) {
           const atMapIndent = !this.onKeyLine && this.indent === map4.indent;
           const atNextItem = atMapIndent && (it5.sep || it5.explicitKey) && this.type !== "seq-item-ind";
-          let start = [];
+          let start2 = [];
           if (atNextItem && it5.sep && !it5.value) {
             const nl2 = [];
             for (let i26 = 0; i26 < it5.sep.length; ++i26) {
@@ -34473,14 +34473,14 @@ var require_parser = __commonJS({
               }
             }
             if (nl2.length >= 2)
-              start = it5.sep.splice(nl2[1]);
+              start2 = it5.sep.splice(nl2[1]);
           }
           switch (this.type) {
             case "anchor":
             case "tag":
               if (atNextItem || it5.value) {
-                start.push(this.sourceToken);
-                map4.items.push({ start });
+                start2.push(this.sourceToken);
+                map4.items.push({ start: start2 });
                 this.onKeyLine = true;
               } else if (it5.sep) {
                 it5.sep.push(this.sourceToken);
@@ -34493,8 +34493,8 @@ var require_parser = __commonJS({
                 it5.start.push(this.sourceToken);
                 it5.explicitKey = true;
               } else if (atNextItem || it5.value) {
-                start.push(this.sourceToken);
-                map4.items.push({ start, explicitKey: true });
+                start2.push(this.sourceToken);
+                map4.items.push({ start: start2, explicitKey: true });
               } else {
                 this.stack.push({
                   type: "block-map",
@@ -34511,12 +34511,12 @@ var require_parser = __commonJS({
                   if (includesToken(it5.start, "newline")) {
                     Object.assign(it5, { key: null, sep: [this.sourceToken] });
                   } else {
-                    const start2 = getFirstKeyStartProps(it5.start);
+                    const start3 = getFirstKeyStartProps(it5.start);
                     this.stack.push({
                       type: "block-map",
                       offset: this.offset,
                       indent: this.indent,
-                      items: [{ start: start2, key: null, sep: [this.sourceToken] }]
+                      items: [{ start: start3, key: null, sep: [this.sourceToken] }]
                     });
                   }
                 } else if (it5.value) {
@@ -34526,10 +34526,10 @@ var require_parser = __commonJS({
                     type: "block-map",
                     offset: this.offset,
                     indent: this.indent,
-                    items: [{ start, key: null, sep: [this.sourceToken] }]
+                    items: [{ start: start2, key: null, sep: [this.sourceToken] }]
                   });
                 } else if (isFlowToken(it5.key) && !includesToken(it5.sep, "newline")) {
-                  const start2 = getFirstKeyStartProps(it5.start);
+                  const start3 = getFirstKeyStartProps(it5.start);
                   const key = it5.key;
                   const sep2 = it5.sep;
                   sep2.push(this.sourceToken);
@@ -34539,10 +34539,10 @@ var require_parser = __commonJS({
                     type: "block-map",
                     offset: this.offset,
                     indent: this.indent,
-                    items: [{ start: start2, key, sep: sep2 }]
+                    items: [{ start: start3, key, sep: sep2 }]
                   });
-                } else if (start.length > 0) {
-                  it5.sep = it5.sep.concat(start, this.sourceToken);
+                } else if (start2.length > 0) {
+                  it5.sep = it5.sep.concat(start2, this.sourceToken);
                 } else {
                   it5.sep.push(this.sourceToken);
                 }
@@ -34550,7 +34550,7 @@ var require_parser = __commonJS({
                 if (!it5.sep) {
                   Object.assign(it5, { key: null, sep: [this.sourceToken] });
                 } else if (it5.value || atNextItem) {
-                  map4.items.push({ start, key: null, sep: [this.sourceToken] });
+                  map4.items.push({ start: start2, key: null, sep: [this.sourceToken] });
                 } else if (includesToken(it5.sep, "map-value-ind")) {
                   this.stack.push({
                     type: "block-map",
@@ -34570,7 +34570,7 @@ var require_parser = __commonJS({
             case "double-quoted-scalar": {
               const fs10 = this.flowScalar(this.type);
               if (atNextItem || it5.value) {
-                map4.items.push({ start, key: fs10, sep: [] });
+                map4.items.push({ start: start2, key: fs10, sep: [] });
                 this.onKeyLine = true;
               } else if (it5.sep) {
                 this.stack.push(fs10);
@@ -34594,7 +34594,7 @@ var require_parser = __commonJS({
                     return;
                   }
                 } else if (atMapIndent) {
-                  map4.items.push({ start });
+                  map4.items.push({ start: start2 });
                 }
                 this.stack.push(bv);
                 return;
@@ -34731,7 +34731,7 @@ var require_parser = __commonJS({
             yield* this.step();
           } else if (this.type === "map-value-ind" && parent2.type !== "flow-collection") {
             const prev = getPrevProps(parent2);
-            const start = getFirstKeyStartProps(prev);
+            const start2 = getFirstKeyStartProps(prev);
             fixFlowSeqItems(fc2);
             const sep2 = fc2.end.splice(1, fc2.end.length);
             sep2.push(this.sourceToken);
@@ -34739,7 +34739,7 @@ var require_parser = __commonJS({
               type: "block-map",
               offset: fc2.offset,
               indent: fc2.indent,
-              items: [{ start, key: fc2, sep: sep2 }]
+              items: [{ start: start2, key: fc2, sep: sep2 }]
             };
             this.onKeyLine = true;
             this.stack[this.stack.length - 1] = map4;
@@ -34798,35 +34798,35 @@ var require_parser = __commonJS({
           case "explicit-key-ind": {
             this.onKeyLine = true;
             const prev = getPrevProps(parent2);
-            const start = getFirstKeyStartProps(prev);
-            start.push(this.sourceToken);
+            const start2 = getFirstKeyStartProps(prev);
+            start2.push(this.sourceToken);
             return {
               type: "block-map",
               offset: this.offset,
               indent: this.indent,
-              items: [{ start, explicitKey: true }]
+              items: [{ start: start2, explicitKey: true }]
             };
           }
           case "map-value-ind": {
             this.onKeyLine = true;
             const prev = getPrevProps(parent2);
-            const start = getFirstKeyStartProps(prev);
+            const start2 = getFirstKeyStartProps(prev);
             return {
               type: "block-map",
               offset: this.offset,
               indent: this.indent,
-              items: [{ start, key: null, sep: [this.sourceToken] }]
+              items: [{ start: start2, key: null, sep: [this.sourceToken] }]
             };
           }
         }
         return null;
       }
-      atIndentedComment(start, indent3) {
+      atIndentedComment(start2, indent3) {
         if (this.type !== "comment")
           return false;
         if (this.indent <= indent3)
           return false;
-        return start.every((st4) => st4.type === "newline" || st4.type === "space");
+        return start2.every((st4) => st4.type === "newline" || st4.type === "space");
       }
       *documentEnd(docEnd) {
         if (this.type !== "doc-mode") {
@@ -35986,7 +35986,7 @@ is not a problem with esbuild. You need to fix your environment instead.
       };
       let transform22 = ({ callName, refs, input: input2, options, isTTY: isTTY2, fs: fs32, callback }) => {
         const details = createObjectStash();
-        let start = (inputPath) => {
+        let start2 = (inputPath) => {
           try {
             if (typeof input2 !== "string" && !(input2 instanceof Uint8Array))
               throw new Error('The input to "transform" must be a string or a Uint8Array');
@@ -36059,10 +36059,10 @@ is not a problem with esbuild. You need to fix your environment instead.
           }
         };
         if ((typeof input2 === "string" || input2 instanceof Uint8Array) && input2.length > 1024 * 1024) {
-          let next = start;
-          start = () => fs32.writeFile(input2, next);
+          let next = start2;
+          start2 = () => fs32.writeFile(input2, next);
         }
-        start(null);
+        start2(null);
       };
       let formatMessages2 = ({ callName, refs, messages, options, callback }) => {
         if (!options) throw new Error(`Missing second argument in ${callName}() call`);
@@ -38442,7 +38442,7 @@ var require_scan = __commonJS({
       const parts = [];
       let str = input2;
       let index2 = -1;
-      let start = 0;
+      let start2 = 0;
       let lastIndex = 0;
       let isBrace = false;
       let isBracket = false;
@@ -38525,8 +38525,8 @@ var require_scan = __commonJS({
           tokens.push(token);
           token = { value: "", depth: 0, isGlob: false };
           if (finished === true) continue;
-          if (prev === CHAR_DOT && index2 === start + 1) {
-            start += 2;
+          if (prev === CHAR_DOT && index2 === start2 + 1) {
+            start2 += 2;
             continue;
           }
           lastIndex = index2 + 1;
@@ -38538,7 +38538,7 @@ var require_scan = __commonJS({
             isGlob = token.isGlob = true;
             isExtglob = token.isExtglob = true;
             finished = true;
-            if (code2 === CHAR_EXCLAMATION_MARK && index2 === start) {
+            if (code2 === CHAR_EXCLAMATION_MARK && index2 === start2) {
               negatedExtglob = true;
             }
             if (scanToEnd === true) {
@@ -38599,9 +38599,9 @@ var require_scan = __commonJS({
           }
           break;
         }
-        if (opts.nonegate !== true && code2 === CHAR_EXCLAMATION_MARK && index2 === start) {
+        if (opts.nonegate !== true && code2 === CHAR_EXCLAMATION_MARK && index2 === start2) {
           negated = token.negated = true;
-          start++;
+          start2++;
           continue;
         }
         if (opts.noparen !== true && code2 === CHAR_LEFT_PARENTHESES) {
@@ -38642,10 +38642,10 @@ var require_scan = __commonJS({
       let base = str;
       let prefix = "";
       let glob = "";
-      if (start > 0) {
-        prefix = str.slice(0, start);
-        str = str.slice(start);
-        lastIndex -= start;
+      if (start2 > 0) {
+        prefix = str.slice(0, start2);
+        str = str.slice(start2);
+        lastIndex -= start2;
       }
       if (base && isGlob === true && lastIndex > 0) {
         base = str.slice(0, lastIndex);
@@ -38670,7 +38670,7 @@ var require_scan = __commonJS({
       const state = {
         prefix,
         input: input2,
-        start,
+        start: start2,
         base,
         glob,
         isBrace,
@@ -38691,11 +38691,11 @@ var require_scan = __commonJS({
       if (opts.parts === true || opts.tokens === true) {
         let prevIndex;
         for (let idx = 0; idx < slashes.length; idx++) {
-          const n27 = prevIndex !== void 0 ? prevIndex + 1 : start;
+          const n27 = prevIndex !== void 0 ? prevIndex + 1 : start2;
           const i26 = slashes[idx];
           const value2 = input2.slice(n27, i26);
           if (opts.tokens) {
-            if (idx === 0 && start !== 0) {
+            if (idx === 0 && start2 !== 0) {
               tokens[idx].isPrefix = true;
               tokens[idx].value = prefix;
             } else {
@@ -38704,12 +38704,12 @@ var require_scan = __commonJS({
             depth(tokens[idx]);
             state.maxDepth += tokens[idx].depth;
           }
-          if (i26 >= start) {
+          if (i26 >= start2) {
             parts.push(value2);
             prevIndex = i26;
           }
         }
-        const n26 = prevIndex !== void 0 ? prevIndex + 1 : start;
+        const n26 = prevIndex !== void 0 ? prevIndex + 1 : start2;
         const value = input2.slice(n26);
         parts.push(value);
         if (opts.tokens && prevIndex && prevIndex + 1 < input2.length) {
@@ -56054,8 +56054,8 @@ function resolveAllAttention(e17, t20) {
 }
 function tokenizeAttention(e17, t20) {
   let n26 = this.parser.constructs.attentionMarkers.null, r26 = this.previous, i26 = classifyCharacter(r26), a26;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return a26 = t21, e17.enter(`attentionSequence`), inside(t21);
   }
   function inside(o24) {
@@ -56070,8 +56070,8 @@ function movePoint(e17, t20) {
 var re = { name: `autolink`, tokenize: tokenizeAutolink };
 function tokenizeAutolink(e17, t20, n26) {
   let r26 = 0;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return e17.enter(`autolink`), e17.enter(`autolinkMarker`), e17.consume(t21), e17.exit(`autolinkMarker`), e17.enter(`autolinkProtocol`), open3;
   }
   function open3(t21) {
@@ -56105,8 +56105,8 @@ function tokenizeAutolink(e17, t20, n26) {
 }
 function factorySpace(e17, t20, n26, r26) {
   let i26 = r26 ? r26 - 1 : 1 / 0, a26 = 0;
-  return start;
-  function start(r27) {
+  return start2;
+  function start2(r27) {
     return markdownSpace(r27) ? (e17.enter(n26), prefix(r27)) : t20(r27);
   }
   function prefix(r27) {
@@ -56115,8 +56115,8 @@ function factorySpace(e17, t20, n26, r26) {
 }
 var E5 = { partial: true, tokenize: tokenizeBlankLine };
 function tokenizeBlankLine(e17, t20, n26) {
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return markdownSpace(t21) ? factorySpace(e17, after, `linePrefix`)(t21) : after(t21);
   }
   function after(e18) {
@@ -56126,8 +56126,8 @@ function tokenizeBlankLine(e17, t20, n26) {
 var D4 = { continuation: { tokenize: tokenizeBlockQuoteContinuation }, exit, name: `blockQuote`, tokenize: tokenizeBlockQuoteStart };
 function tokenizeBlockQuoteStart(e17, t20, n26) {
   let r26 = this;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     if (t21 === 62) {
       let n27 = r26.containerState;
       return n27.open ||= (e17.enter(`blockQuote`, { _container: true }), true), e17.enter(`blockQuotePrefix`), e17.enter(`blockQuoteMarker`), e17.consume(t21), e17.exit(`blockQuoteMarker`), after;
@@ -56153,8 +56153,8 @@ function exit(e17) {
 }
 var O5 = { name: `characterEscape`, tokenize: tokenizeCharacterEscape };
 function tokenizeCharacterEscape(e17, t20, n26) {
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return e17.enter(`characterEscape`), e17.enter(`escapeMarker`), e17.consume(t21), e17.exit(`escapeMarker`), inside;
   }
   function inside(r26) {
@@ -56164,8 +56164,8 @@ function tokenizeCharacterEscape(e17, t20, n26) {
 var k5 = { name: `characterReference`, tokenize: tokenizeCharacterReference };
 function tokenizeCharacterReference(e17, t20, n26) {
   let r26 = this, i26 = 0, a26, o24;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return e17.enter(`characterReference`), e17.enter(`characterReferenceMarker`), e17.consume(t21), e17.exit(`characterReferenceMarker`), open3;
   }
   function open3(t21) {
@@ -56186,8 +56186,8 @@ var A5 = { partial: true, tokenize: tokenizeNonLazyContinuation };
 var j5 = { concrete: true, name: `codeFenced`, tokenize: tokenizeCodeFenced };
 function tokenizeCodeFenced(e17, t20, n26) {
   let r26 = this, i26 = { partial: true, tokenize: tokenizeCloseStart }, a26 = 0, o24 = 0, s23;
-  return start;
-  function start(e18) {
+  return start2;
+  function start2(e18) {
     return beforeSequenceOpen(e18);
   }
   function beforeSequenceOpen(t21) {
@@ -56231,9 +56231,9 @@ function tokenizeCodeFenced(e17, t20, n26) {
     let i27 = 0;
     return startBefore;
     function startBefore(t22) {
-      return e18.enter(`lineEnding`), e18.consume(t22), e18.exit(`lineEnding`), start2;
+      return e18.enter(`lineEnding`), e18.consume(t22), e18.exit(`lineEnding`), start3;
     }
-    function start2(t22) {
+    function start3(t22) {
       return e18.enter(`codeFencedFence`), markdownSpace(t22) ? factorySpace(e18, beforeSequenceClose, `linePrefix`, r26.parser.constructs.disable.null.includes(`codeIndented`) ? void 0 : 4)(t22) : beforeSequenceClose(t22);
     }
     function beforeSequenceClose(t22) {
@@ -56249,8 +56249,8 @@ function tokenizeCodeFenced(e17, t20, n26) {
 }
 function tokenizeNonLazyContinuation(e17, t20, n26) {
   let r26 = this;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return t21 === null ? n26(t21) : (e17.enter(`lineEnding`), e17.consume(t21), e17.exit(`lineEnding`), lineStart);
   }
   function lineStart(e18) {
@@ -56261,8 +56261,8 @@ var M5 = { name: `codeIndented`, tokenize: tokenizeCodeIndented };
 var ie = { partial: true, tokenize: tokenizeFurtherStart };
 function tokenizeCodeIndented(e17, t20, n26) {
   let r26 = this;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return e17.enter(`codeIndented`), factorySpace(e17, afterPrefix, `linePrefix`, 5)(t21);
   }
   function afterPrefix(e18) {
@@ -56307,8 +56307,8 @@ function previous(e17) {
 }
 function tokenizeCodeText(e17, t20, n26) {
   let r26 = 0, i26, a26;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return e17.enter(`codeText`), e17.enter(`codeTextSequence`), sequenceOpen(t21);
   }
   function sequenceOpen(t21) {
@@ -56445,8 +56445,8 @@ function tokenizeContinuation(e17, t20, n26) {
 }
 function factoryDestination(e17, t20, n26, r26, i26, a26, o24, s23, c21) {
   let l20 = c21 || 1 / 0, u19 = 0;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return t21 === 60 ? (e17.enter(r26), e17.enter(i26), e17.enter(a26), e17.consume(t21), e17.exit(a26), enclosedBefore) : t21 === null || t21 === 32 || t21 === 41 || asciiControl(t21) ? n26(t21) : (e17.enter(r26), e17.enter(o24), e17.enter(s23), e17.enter(`chunkString`, { contentType: `string` }), raw2(t21));
   }
   function enclosedBefore(n27) {
@@ -56467,8 +56467,8 @@ function factoryDestination(e17, t20, n26, r26, i26, a26, o24, s23, c21) {
 }
 function factoryLabel(e17, t20, n26, r26, i26, a26) {
   let o24 = this, s23 = 0, c21;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return e17.enter(r26), e17.enter(i26), e17.consume(t21), e17.exit(i26), e17.enter(a26), atBreak;
   }
   function atBreak(l20) {
@@ -56484,8 +56484,8 @@ function factoryLabel(e17, t20, n26, r26, i26, a26) {
 }
 function factoryTitle(e17, t20, n26, r26, i26, a26) {
   let o24;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return t21 === 34 || t21 === 39 || t21 === 40 ? (e17.enter(r26), e17.enter(i26), e17.consume(t21), e17.exit(i26), o24 = t21 === 40 ? 41 : t21, begin) : n26(t21);
   }
   function begin(n27) {
@@ -56503,17 +56503,17 @@ function factoryTitle(e17, t20, n26, r26, i26, a26) {
 }
 function factoryWhitespace(e17, t20) {
   let n26;
-  return start;
-  function start(r26) {
-    return markdownLineEnding(r26) ? (e17.enter(`lineEnding`), e17.consume(r26), e17.exit(`lineEnding`), n26 = true, start) : markdownSpace(r26) ? factorySpace(e17, start, n26 ? `linePrefix` : `lineSuffix`)(r26) : t20(r26);
+  return start2;
+  function start2(r26) {
+    return markdownLineEnding(r26) ? (e17.enter(`lineEnding`), e17.consume(r26), e17.exit(`lineEnding`), n26 = true, start2) : markdownSpace(r26) ? factorySpace(e17, start2, n26 ? `linePrefix` : `lineSuffix`)(r26) : t20(r26);
   }
 }
 var ce = { name: `definition`, tokenize: tokenizeDefinition };
 var le = { partial: true, tokenize: tokenizeTitleBefore };
 function tokenizeDefinition(e17, t20, n26) {
   let r26 = this, i26;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return e17.enter(`definition`), before(t21);
   }
   function before(t21) {
@@ -56555,8 +56555,8 @@ function tokenizeTitleBefore(e17, t20, n26) {
 }
 var N5 = { name: `hardBreakEscape`, tokenize: tokenizeHardBreakEscape };
 function tokenizeHardBreakEscape(e17, t20, n26) {
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return e17.enter(`hardBreakEscape`), e17.consume(t21), after;
   }
   function after(r26) {
@@ -56570,8 +56570,8 @@ function resolveHeadingAtx(e17, t20) {
 }
 function tokenizeHeadingAtx(e17, t20, n26) {
   let r26 = 0;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return e17.enter(`atxHeading`), before(t21);
   }
   function before(t21) {
@@ -56602,8 +56602,8 @@ function resolveToHtmlFlow(e17) {
 }
 function tokenizeHtmlFlow(e17, t20, n26) {
   let r26 = this, i26, a26, o24, s23, c21;
-  return start;
-  function start(e18) {
+  return start2;
+  function start2(e18) {
     return before(e18);
   }
   function before(t21) {
@@ -56704,8 +56704,8 @@ function tokenizeHtmlFlow(e17, t20, n26) {
 }
 function tokenizeNonLazyContinuationStart(e17, t20, n26) {
   let r26 = this;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return markdownLineEnding(t21) ? (e17.enter(`lineEnding`), e17.consume(t21), e17.exit(`lineEnding`), after) : n26(t21);
   }
   function after(e18) {
@@ -56713,16 +56713,16 @@ function tokenizeNonLazyContinuationStart(e17, t20, n26) {
   }
 }
 function tokenizeBlankLineBefore(e17, t20, n26) {
-  return start;
-  function start(r26) {
+  return start2;
+  function start2(r26) {
     return e17.enter(`lineEnding`), e17.consume(r26), e17.exit(`lineEnding`), e17.attempt(E5, t20, n26);
   }
 }
 var B3 = { name: `htmlText`, tokenize: tokenizeHtmlText };
 function tokenizeHtmlText(e17, t20, n26) {
   let r26 = this, i26, a26, o24;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return e17.enter(`htmlText`), e17.enter(`htmlTextData`), e17.consume(t21), open3;
   }
   function open3(t21) {
@@ -56845,8 +56845,8 @@ function tokenizeLabelEnd(e17, t20, n26) {
     a26 = r26.events[i26][1];
     break;
   }
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return a26 ? a26._inactive ? labelEndNok(t21) : (o24 = r26.parser.defined.includes(normalizeIdentifier(r26.sliceSerialize({ start: a26.end, end: r26.now() }))), e17.enter(`labelEnd`), e17.enter(`labelMarker`), e17.consume(t21), e17.exit(`labelMarker`), e17.exit(`labelEnd`), after) : n26(t21);
   }
   function after(t21) {
@@ -56914,8 +56914,8 @@ function tokenizeReferenceCollapsed(e17, t20, n26) {
 var ue = { name: `labelStartImage`, resolveAll: V3.resolveAll, tokenize: tokenizeLabelStartImage };
 function tokenizeLabelStartImage(e17, t20, n26) {
   let r26 = this;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return e17.enter(`labelImage`), e17.enter(`labelImageMarker`), e17.consume(t21), e17.exit(`labelImageMarker`), open3;
   }
   function open3(t21) {
@@ -56928,8 +56928,8 @@ function tokenizeLabelStartImage(e17, t20, n26) {
 var de = { name: `labelStartLink`, resolveAll: V3.resolveAll, tokenize: tokenizeLabelStartLink };
 function tokenizeLabelStartLink(e17, t20, n26) {
   let r26 = this;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return e17.enter(`labelLink`), e17.enter(`labelMarker`), e17.consume(t21), e17.exit(`labelMarker`), e17.exit(`labelLink`), after;
   }
   function after(e18) {
@@ -56938,16 +56938,16 @@ function tokenizeLabelStartLink(e17, t20, n26) {
 }
 var G3 = { name: `lineEnding`, tokenize: tokenizeLineEnding };
 function tokenizeLineEnding(e17, t20) {
-  return start;
-  function start(n26) {
+  return start2;
+  function start2(n26) {
     return e17.enter(`lineEnding`), e17.consume(n26), e17.exit(`lineEnding`), factorySpace(e17, t20, `linePrefix`);
   }
 }
 var K4 = { name: `thematicBreak`, tokenize: tokenizeThematicBreak };
 function tokenizeThematicBreak(e17, t20, n26) {
   let r26 = 0, i26;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return e17.enter(`thematicBreak`), before(t21);
   }
   function before(e18) {
@@ -56965,8 +56965,8 @@ var fe = { partial: true, tokenize: tokenizeListItemPrefixWhitespace };
 var pe = { partial: true, tokenize: tokenizeIndent };
 function tokenizeListStart(e17, t20, n26) {
   let r26 = this, i26 = r26.events[r26.events.length - 1], a26 = i26 && i26[1].type === `linePrefix` ? i26[2].sliceSerialize(i26[1], true).length : 0, o24 = 0;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     let i27 = r26.containerState.type || (t21 === 42 || t21 === 43 || t21 === 45 ? `listUnordered` : `listOrdered`);
     if (i27 === `listUnordered` ? !r26.containerState.marker || t21 === r26.containerState.marker : h7(t21)) {
       if (r26.containerState.type || (r26.containerState.type = i27, e17.enter(i27, { _container: true })), i27 === `listUnordered`) return e17.enter(`listItemPrefix`), t21 === 42 || t21 === 45 ? e17.check(K4, n26, atMarker)(t21) : atMarker(t21);
@@ -57037,8 +57037,8 @@ function resolveToSetextUnderline(e17, t20) {
 }
 function tokenizeSetextUnderline(e17, t20, n26) {
   let r26 = this, i26;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     let a26 = r26.events.length, o24;
     for (; a26--; ) if (r26.events[a26][1].type !== `lineEnding` && r26.events[a26][1].type !== `linePrefix` && r26.events[a26][1].type !== `content`) {
       o24 = r26.events[a26][1].type === `paragraph`;
@@ -57080,8 +57080,8 @@ var he = { tokenize: initializeDocument };
 var Y2 = { tokenize: tokenizeContainer };
 function initializeDocument(e17) {
   let t20 = this, n26 = [], r26 = 0, i26, a26, o24;
-  return start;
-  function start(i27) {
+  return start2;
+  function start2(i27) {
     if (r26 < n26.length) {
       let a27 = n26[r26];
       return t20.containerState = a27[1], e17.attempt(a27[0].continuation, documentContinue, checkNewContainers)(i27);
@@ -57101,7 +57101,7 @@ function initializeDocument(e17) {
       for (; s23 < t20.events.length; ) t20.events[s23][1].end = { ...o25 }, s23++;
       return splice(t20.events, a27 + 1, 0, t20.events.slice(n27)), t20.events.length = s23, checkNewContainers(e18);
     }
-    return start(e18);
+    return start2(e18);
   }
   function checkNewContainers(a27) {
     if (r26 === n26.length) {
@@ -57129,7 +57129,7 @@ function initializeDocument(e17) {
   }
   function flowContinue(n27) {
     if (n27 === null) writeToChild(e17.exit(`chunkFlow`), true), exitContainers(0), e17.consume(n27);
-    else return markdownLineEnding(n27) ? (e17.consume(n27), writeToChild(e17.exit(`chunkFlow`)), r26 = 0, t20.interrupt = void 0, start) : (e17.consume(n27), flowContinue);
+    else return markdownLineEnding(n27) ? (e17.consume(n27), writeToChild(e17.exit(`chunkFlow`)), r26 = 0, t20.interrupt = void 0, start2) : (e17.consume(n27), flowContinue);
   }
   function writeToChild(e18, n27) {
     let s23 = t20.sliceStream(e18);
@@ -57182,9 +57182,9 @@ var ye = initializeFactory(`text`);
 function initializeFactory(e17) {
   return { resolveAll: createResolver(e17 === `text` ? resolveAllLineSuffixes : void 0), tokenize: initializeText };
   function initializeText(t20) {
-    let n26 = this, r26 = this.parser.constructs[e17], i26 = t20.attempt(r26, start, notText);
-    return start;
-    function start(e18) {
+    let n26 = this, r26 = this.parser.constructs[e17], i26 = t20.attempt(r26, start2, notText);
+    return start2;
+    function start2(e18) {
       return atBreak(e18) ? i26(e18) : notText(e18);
     }
     function notText(e18) {
@@ -57300,8 +57300,8 @@ function createTokenizer(e17, t20, n26) {
       let a27, o25, s24, u20;
       return Array.isArray(n27) ? handleListOfConstructs(n27) : `tokenize` in n27 ? handleListOfConstructs([n27]) : handleMapOfConstructs(n27);
       function handleMapOfConstructs(e19) {
-        return start;
-        function start(t22) {
+        return start2;
+        function start2(t22) {
           let n28 = t22 !== null && e19[t22], r28 = t22 !== null && e19.null;
           return handleListOfConstructs([...Array.isArray(n28) ? n28 : n28 ? [n28] : [], ...Array.isArray(r28) ? r28 : r28 ? [r28] : []])(t22);
         }
@@ -57310,8 +57310,8 @@ function createTokenizer(e17, t20, n26) {
         return a27 = e19, o25 = 0, e19.length === 0 ? i27 : handleConstruct(e19[o25]);
       }
       function handleConstruct(e19) {
-        return start;
-        function start(n28) {
+        return start2;
+        function start2(n28) {
           return u20 = store(), s24 = e19, e19.partial || (l20.currentConstruct = e19), e19.name && l20.parser.constructs.disable.null.includes(e19.name) ? nok(n28) : e19.tokenize.call(t21 ? Object.assign(Object.create(l20), t21) : l20, c21, ok, nok)(n28);
         }
       }
@@ -59575,8 +59575,8 @@ for (; k7 < 123; ) O7[k7] = D6, k7++, k7 === 58 ? k7 = 65 : k7 === 91 && (k7 = 9
 O7[43] = D6, O7[45] = D6, O7[46] = D6, O7[95] = D6, O7[72] = [D6, E7], O7[104] = [D6, E7], O7[87] = [D6, T7], O7[119] = [D6, T7];
 function tokenizeEmailAutolink(e17, t20, n26) {
   let r26 = this, i26, a26;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return !gfmAtext(t21) || !previousEmail.call(r26, r26.previous) || previousUnbalanced(r26.events) ? n26(t21) : (e17.enter(`literalAutolink`), e17.enter(`literalAutolinkEmail`), atext(t21));
   }
   function atext(t21) {
@@ -59675,8 +59675,8 @@ function tokenizeTrail(e17, t20, n26) {
   }
 }
 function tokenizeEmailDomainDotTrail(e17, t20, n26) {
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return e17.consume(t21), after;
   }
   function after(e18) {
@@ -59724,8 +59724,8 @@ function tokenizePotentialGfmFootnoteCall(e17, t20, n26) {
     }
     if (e18.type === `gfmFootnoteCall` || e18.type === `labelLink` || e18.type === `label` || e18.type === `image` || e18.type === `link`) break;
   }
-  return start;
-  function start(i27) {
+  return start2;
+  function start2(i27) {
     if (!o24 || !o24._balanced) return n26(i27);
     let s23 = normalizeIdentifier(r26.sliceSerialize({ start: o24.end, end: r26.now() }));
     return s23.codePointAt(0) !== 94 || !a26.includes(s23.slice(1)) ? n26(i27) : (e17.enter(`gfmFootnoteCallLabelMarker`), e17.consume(i27), e17.exit(`gfmFootnoteCallLabelMarker`), t20(i27));
@@ -59745,8 +59745,8 @@ function resolveToPotentialGfmFootnoteCall(e17, t20) {
 }
 function tokenizeGfmFootnoteCall(e17, t20, n26) {
   let r26 = this, i26 = r26.parser.gfmFootnotes || (r26.parser.gfmFootnotes = []), a26 = 0, o24;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return e17.enter(`gfmFootnoteCall`), e17.enter(`gfmFootnoteCallLabelMarker`), e17.consume(t21), e17.exit(`gfmFootnoteCallLabelMarker`), callStart;
   }
   function callStart(t21) {
@@ -59767,8 +59767,8 @@ function tokenizeGfmFootnoteCall(e17, t20, n26) {
 }
 function tokenizeDefinitionStart(e17, t20, r26) {
   let i26 = this, a26 = i26.parser.gfmFootnotes || (i26.parser.gfmFootnotes = []), o24, s23 = 0, c21;
-  return start;
-  function start(t21) {
+  return start2;
+  function start2(t21) {
     return e17.enter(`gfmFootnoteDefinition`)._container = true, e17.enter(`gfmFootnoteDefinitionLabel`), e17.enter(`gfmFootnoteDefinitionLabelMarker`), e17.consume(t21), e17.exit(`gfmFootnoteDefinitionLabelMarker`), labelAtMarker;
   }
   function labelAtMarker(t21) {
@@ -59826,8 +59826,8 @@ function gfmStrikethrough(e17) {
   }
   function tokenizeStrikethrough(e18, n27, r26) {
     let i26 = this.previous, o24 = this.events, s23 = 0;
-    return start;
-    function start(t21) {
+    return start2;
+    function start2(t21) {
       return i26 === 126 && o24[o24.length - 1][1].type !== `characterEscape` ? r26(t21) : (e18.enter(`strikethroughSequenceTemporary`), more(t21));
     }
     function more(o25) {
@@ -59896,8 +59896,8 @@ function gfmTable() {
 }
 function tokenizeTable(e17, r26, i26) {
   let a26 = this, o24 = 0, s23 = 0, c21;
-  return start;
-  function start(e18) {
+  return start2;
+  function start2(e18) {
     let t20 = a26.events.length - 1;
     for (; t20 > -1; ) {
       let e19 = a26.events[t20][1].type;
@@ -92679,12 +92679,12 @@ var getErrorOutput = ({ exitCode, signalCode }) => ({
   ...exitCode < 1 ? {} : { exitCode },
   ...signalCode === null ? {} : { signalName: signalCode }
 });
-var getOutputs = ({ state: { stdout, stderr, output: output2 }, command, start }) => ({
+var getOutputs = ({ state: { stdout, stderr, output: output2 }, command, start: start2 }) => ({
   stdout: getOutput(stdout),
   stderr: getOutput(stderr),
   output: getOutput(output2),
   command,
-  durationMs: Number(process6.hrtime.bigint() - start) / 1e6
+  durationMs: Number(process6.hrtime.bigint() - start2) / 1e6
 });
 var getOutput = (output2) => output2.at(-1) === "\n" ? output2.slice(0, output2.at(-2) === "\r" ? -2 : -1) : output2;
 
@@ -92888,7 +92888,7 @@ import { createRequire } from "module";
 var singleComment = /* @__PURE__ */ Symbol("singleComment");
 var multiComment = /* @__PURE__ */ Symbol("multiComment");
 var stripWithoutWhitespace = () => "";
-var stripWithWhitespace = (string4, start, end) => string4.slice(start, end).replace(/\S/g, " ");
+var stripWithWhitespace = (string4, start2, end) => string4.slice(start2, end).replace(/\S/g, " ");
 var isEscaped = (jsonString, quotePosition) => {
   let index2 = quotePosition - 1;
   let backslashCount = 0;
@@ -102821,18 +102821,18 @@ function readCode(root4, file2, symbol2) {
   const text5 = repoReader(root4)(file2);
   if (text5 === null) return { error: `No file ${file2} in this repo.` };
   const lines2 = text5.split("\n");
-  let start = -1, end = -1;
+  let start2 = -1, end = -1;
   if (symbol2) {
     const decl = new RegExp(`\\b(class|function|const|let|var|def|interface|type|enum)\\s+${symbol2.replace(/[^\w$]/g, "")}\\b`);
-    start = lines2.findIndex((l20) => decl.test(l20));
-    if (start < 0) start = lines2.findIndex((l20) => new RegExp(`\\b${symbol2.replace(/[^\w$]/g, "")}\\b`).test(l20));
-    if (start >= 0) end = blockEnd(lines2, start);
+    start2 = lines2.findIndex((l20) => decl.test(l20));
+    if (start2 < 0) start2 = lines2.findIndex((l20) => new RegExp(`\\b${symbol2.replace(/[^\w$]/g, "")}\\b`).test(l20));
+    if (start2 >= 0) end = blockEnd(lines2, start2);
   }
-  return { file: file2, text: text5, start: start + 1 || void 0, end: end >= 0 ? end + 1 : void 0 };
+  return { file: file2, text: text5, start: start2 + 1 || void 0, end: end >= 0 ? end + 1 : void 0 };
 }
-function blockEnd(lines2, start) {
+function blockEnd(lines2, start2) {
   let depth = 0, opened = false;
-  for (let i26 = start; i26 < lines2.length; i26++) {
+  for (let i26 = start2; i26 < lines2.length; i26++) {
     for (const ch of lines2[i26].replace(/(['"`])(?:\\.|(?!\1).)*\1/g, "")) {
       if (ch === "{") {
         depth++;
@@ -102840,11 +102840,127 @@ function blockEnd(lines2, start) {
       } else if (ch === "}") depth--;
     }
     if (opened && depth <= 0) return i26;
-    if (!opened && i26 > start && /\S/.test(lines2[i26]) && !/^\s/.test(lines2[i26])) return i26 - 1;
+    if (!opened && i26 > start2 && /\S/.test(lines2[i26]) && !/^\s/.test(lines2[i26])) return i26 - 1;
   }
   return lines2.length - 1;
 }
 var slug = (s23) => s23.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").replace(/^(\d)/, "s$1") || "system";
+
+// src/browser.ts
+import { spawn as spawn3 } from "node:child_process";
+import { randomBytes } from "node:crypto";
+import * as http from "node:http";
+var TOOLS = {
+  get_views: (root4) => getViews(root4),
+  read_code: (root4, a26) => readCode(root4, String(a26.file ?? ""), a26.symbol ? String(a26.symbol) : void 0)
+};
+var server = null;
+var roots = /* @__PURE__ */ new Map();
+function start(html3) {
+  return new Promise((resolve5, reject) => {
+    const s23 = http.createServer(async (req2, res) => {
+      const port = s23.address().port;
+      const url2 = new URL(req2.url ?? "/", `http://127.0.0.1:${port}`);
+      if (req2.headers.host !== `127.0.0.1:${port}` && req2.headers.host !== `localhost:${port}`) return void res.writeHead(403).end();
+      try {
+        if (req2.method === "POST" && url2.pathname === "/api/tool") {
+          const root4 = roots.get(String(req2.headers["x-vibeblocks-token"] ?? ""));
+          if (!root4) return void res.writeHead(403, { "content-type": "application/json" }).end(JSON.stringify({ error: "This link has expired. Run /vibeblocks:open again." }));
+          let body3 = "";
+          for await (const c21 of req2) body3 += c21;
+          const { tool, args = {} } = JSON.parse(body3 || "{}");
+          const fn3 = TOOLS[tool];
+          if (!fn3) throw new Error(`The browser map can't call ${tool}.`);
+          return void res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify(await fn3(root4, args)));
+        }
+        if (req2.method === "GET" && url2.pathname === "/") return void res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" }).end(html3());
+        res.writeHead(404).end();
+      } catch (e17) {
+        res.writeHead(500, { "content-type": "application/json" }).end(JSON.stringify({ error: e17.message }));
+      }
+    });
+    s23.on("error", reject);
+    s23.listen(0, "127.0.0.1", () => resolve5(s23.address().port));
+  });
+}
+async function openInBrowser(root4, html3, launch = true) {
+  server ??= start(html3);
+  const port = await server;
+  let token = [...roots].find(([, r26]) => r26 === root4)?.[0];
+  if (!token) {
+    token = randomBytes(16).toString("hex");
+    roots.set(token, root4);
+  }
+  const link2 = `http://127.0.0.1:${port}/?token=${token}`;
+  if (launch) {
+    const [cmd, args] = process.platform === "darwin" ? ["open", [link2]] : process.platform === "win32" ? ["cmd", ["/c", "start", "", link2]] : ["xdg-open", [link2]];
+    spawn3(cmd, args, { detached: true, stdio: "ignore" }).on("error", () => {
+    }).unref();
+  }
+  return link2;
+}
+
+// src/help.ts
+var HELP = [
+  {
+    title: "Getting around",
+    lines: [
+      { text: "The map has four levels: **Context** (the people who use the system and the outside services it talks to), **Containers** (the apps, servers and databases), **Components** (the parts of one container) and **Code**." },
+      { text: "Click a box to select it. The panel shows what it is, the code behind it, and its arrows in and out." },
+      { text: "Double-click a box, or click the pill under it, to go one level deeper. **\u2190 Zoom out** or the breadcrumbs at the top take you back up." },
+      { text: "**Pinch with two fingers** on a trackpad to zoom. Keep pinching into a box and it opens; pinch out past the whole level to go back up. One pinch moves one level." },
+      { text: "Scroll with two fingers, or drag the background, to move around." }
+    ]
+  },
+  {
+    title: "Reading the diagram",
+    lines: [
+      { text: "Arrows show what talks to what, labelled with what travels over them. Select an arrow to see every connection behind it." },
+      { text: "On a busy level the map zooms out and hides arrow labels. Click an arrow (or zoom in) to see its label; select a box and the panel lists all its arrows." },
+      { text: "**Dashed** boxes are outside services (like Stripe), or parts of a proposed change that is not built yet." },
+      { text: "Code is read-only on the map. To change it, ask Claude in the chat." }
+    ]
+  },
+  {
+    title: "Asking Claude",
+    lines: [
+      { text: "With something selected, use **Why is this here?** or **Explain**, or type your own question and press **Send to chat**. It goes to Claude already pointing at what you selected.", only: "chat" },
+      { text: "This tab only shows the map. Ask Claude about it in your Claude chat.", only: "browser" }
+    ]
+  },
+  {
+    title: "Changing the code",
+    lines: [
+      { text: "Ask Claude for a feature in the chat. Before writing code it draws the plan on the map as dashed boxes." },
+      { text: "**Approve** to have Claude build it, **Modify** to change the plan, or **Reject** to drop it. Nothing changes until you approve.", only: "chat" },
+      { text: "Approve, change or reject a plan in your Claude chat; this tab updates on its own.", only: "browser" }
+    ]
+  },
+  {
+    title: "Where to open the map",
+    lines: [
+      { text: "**In the chat:** `/vibeblocks:map`. Use \u2922 to make it bigger, if your app offers it." },
+      { text: "**In a browser tab:** `/vibeblocks:open`, or **Open in browser** at the top of the map. The tab is view-only and updates by itself while Claude is running; it stops when you quit Claude." }
+    ]
+  },
+  {
+    title: "Commands",
+    lines: [
+      { text: "`/vibeblocks:map`: draw this project's map (or show it, if it exists) in the chat." },
+      { text: "`/vibeblocks:open`: open the map in a browser tab." },
+      { text: "`/vibeblocks:help`: this guide." },
+      { text: "To start a map over, delete the `.vibeblocks` folder in the project and run `/vibeblocks:map`." }
+    ]
+  }
+];
+function helpFor(surface) {
+  return HELP.map((s23) => ({ ...s23, lines: s23.lines.filter((l20) => !l20.only || l20.only === surface) })).filter((s23) => s23.lines.length);
+}
+function helpMarkdown() {
+  return ["# Using VibeBlocks", ...helpFor("chat").map((s23) => `## ${s23.title}
+
+${s23.lines.map((l20) => `- ${l20.text}`).join("\n")}`)].join("\n\n");
+}
 
 // src/mcp/server.ts
 var UI_URI = "ui://vibeblocks/map.html";
@@ -102862,14 +102978,14 @@ var json3 = (x14, isError2 = false) => ({ content: [{ type: "text", text: JSON.s
 var pathArg = { path: external_exports.string().optional().describe("Project folder (absolute). Defaults to the folder the agent runs in.") };
 var OpsArg = external_exports.array(external_exports.record(external_exports.string(), external_exports.any())).describe(`Operations, each an object with an "op" field and these fields ("?" = optional):
 ${OPS_REFERENCE}`);
-var server = new McpServer(
+var server2 = new McpServer(
   { name: "vibeblocks", version: "0.1.0" },
   { instructions: "VibeBlocks shows the project as an interactive C4 diagram in the conversation. Call show_map when the user asks about the project structure or architecture, or after you change the model. Before implementing a feature, call propose_change so the user can approve it on the diagram. Call get_guide before drawing or changing the model for the first time." }
 );
-N3(server, "VibeBlocks map", UI_URI, { description: "Interactive C4 diagram of the project" }, async () => ({
+N3(server2, "VibeBlocks map", UI_URI, { description: "Interactive C4 diagram of the project" }, async () => ({
   contents: [{ uri: UI_URI, mimeType: p, text: uiHtml() }]
 }));
-K3(server, "show_map", {
+K3(server2, "show_map", {
   title: "Show architecture map",
   description: "Show the project as an interactive C4 diagram (context \u2192 containers \u2192 components \u2192 code) in the conversation. Use when the user asks how the project is structured, where something happens, or to show a change you made or proposed.",
   inputSchema: { ...pathArg, focus: external_exports.string().optional().describe("Element id to open the map on (e.g. a container id), optional.") },
@@ -102883,31 +102999,31 @@ K3(server, "show_map", {
     _meta: { vibeblocks: await mapSnapshot(root4) }
   };
 });
-server.registerTool(
+server2.registerTool(
   "get_guide",
   { description: "How to draw and change the VibeBlocks C4 model: levels, rules, relationship kinds, workflow. Read before the first update_model.", inputSchema: {} },
   async () => ({ content: [{ type: "text", text: GUIDE }] })
 );
-server.registerTool(
+server2.registerTool(
   "get_model",
   { description: "The current C4 model of the project, with validation errors/warnings and any open proposal.", inputSchema: pathArg },
   async (args) => json3(getModel(resolveRoot(args.path)))
 );
-server.registerTool("update_model", {
+server2.registerTool("update_model", {
   description: 'Change the C4 model with a batch of operations. All or nothing: if any operation or C4 rule fails, nothing is saved and the errors say how to fix them. Code references are checked against the files. On success it returns warnings (style, boxes with no arrows, source files not on the map) and "map": the diagram in plain lines; check it against the code and fix what is off.',
   inputSchema: { ...pathArg, ops: OpsArg }
 }, async (args) => {
   const r26 = updateModel(resolveRoot(args.path), args.ops);
   return json3(r26, !r26.saved);
 });
-server.registerTool("propose_change", {
+server2.registerTool("propose_change", {
   description: "Propose a change to the architecture before writing code. It is drawn dashed on the map for the user to approve, modify or reject. Only structure is checked now; code references are checked when you apply it.",
   inputSchema: { ...pathArg, summary: external_exports.string().describe("One line: what the change does for the user."), ops: OpsArg }
 }, async (args) => {
   const r26 = proposeChange(resolveRoot(args.path), args.summary, args.ops);
   return json3(r26, !r26.saved);
 });
-server.registerTool(
+server2.registerTool(
   "apply_proposal",
   { description: "After implementing an approved proposal, apply it to the model (code references are checked now).", inputSchema: pathArg },
   async (args) => {
@@ -102915,22 +103031,36 @@ server.registerTool(
     return json3(r26, !r26.saved);
   }
 );
-server.registerTool(
+server2.registerTool(
   "discard_proposal",
   { description: "Drop the open proposal (the user rejected it).", inputSchema: pathArg },
   async (args) => json3(discardProposal(resolveRoot(args.path)))
 );
-server.registerTool("get_views", {
+server2.registerTool("open_in_browser", {
+  description: "Open the project's map in a browser tab (view-only, updates itself while this server runs). Returns the link. Use when the user wants the map in a browser, or bigger than the chat allows.",
+  inputSchema: pathArg
+}, async (args) => {
+  const root4 = resolveRoot(args.path);
+  if (!mapSummary(root4)) return json3({ opened: false, note: "This project has no VibeBlocks model yet. Draw it first (get_guide, then update_model)." });
+  return json3({ opened: true, url: await openInBrowser(root4, uiHtml, process.env.VIBEBLOCKS_NO_BROWSER !== "1") });
+});
+server2.registerTool(
+  "get_help",
+  { description: "The quick guide to using the VibeBlocks map (what the user can click, the commands, where to open it), as Markdown. Use for /vibeblocks:help or when the user asks how to use the map.", inputSchema: {} },
+  async () => ({ content: [{ type: "text", text: helpMarkdown() }] })
+);
+server2.registerTool("get_views", {
   description: "Computed, laid-out views of the model for the map.",
   inputSchema: pathArg,
   _meta: { ui: { visibility: ["app"] } }
 }, async (args) => json3(await getViews(resolveRoot(args.path))));
-server.registerTool("read_code", {
+server2.registerTool("read_code", {
   description: "Text of a file in the project, with the line range of a symbol.",
   inputSchema: { ...pathArg, file: external_exports.string(), symbol: external_exports.string().optional() },
   _meta: { ui: { visibility: ["app"] } }
 }, async (args) => json3(readCode(resolveRoot(args.path), args.file, args.symbol)));
-await server.connect(new StdioServerTransport());
+await server2.connect(new StdioServerTransport());
+process.stdin.on("close", () => process.exit(0));
 /*! Bundled license information:
 
 @likec4/core/dist/chunks/libs/chroma-js.mjs:

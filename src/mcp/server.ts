@@ -12,6 +12,8 @@ import { z } from 'zod';
 import { GUIDE } from '../guide';
 import { applyProposal, discardProposal, getModel, getViews, mapSnapshot, mapSummary, proposeChange, readCode, resolveRoot, updateModel } from '../service';
 import { OPS_REFERENCE } from '../model/ops';
+import { openInBrowser } from '../browser';
+import { helpMarkdown } from '../help';
 
 const UI_URI = 'ui://vibeblocks/map.html';
 const here = path.dirname(new URL(import.meta.url).pathname);
@@ -76,6 +78,18 @@ server.registerTool('discard_proposal', { description: 'Drop the open proposal (
   async (args) => json(discardProposal(resolveRoot(args.path))));
 
 // ---- used by the map itself
+server.registerTool('open_in_browser', {
+  description: 'Open the project\'s map in a browser tab (view-only, updates itself while this server runs). Returns the link. Use when the user wants the map in a browser, or bigger than the chat allows.',
+  inputSchema: pathArg,
+}, async (args) => {
+  const root = resolveRoot(args.path);
+  if (!mapSummary(root)) return json({ opened: false, note: 'This project has no VibeBlocks model yet. Draw it first (get_guide, then update_model).' });
+  return json({ opened: true, url: await openInBrowser(root, uiHtml, process.env.VIBEBLOCKS_NO_BROWSER !== '1') });
+});
+
+server.registerTool('get_help', { description: 'The quick guide to using the VibeBlocks map (what the user can click, the commands, where to open it), as Markdown. Use for /vibeblocks:help or when the user asks how to use the map.', inputSchema: {} },
+  async () => ({ content: [{ type: 'text' as const, text: helpMarkdown() }] }));
+
 server.registerTool('get_views', {
   description: 'Computed, laid-out views of the model for the map.',
   inputSchema: pathArg,
@@ -89,3 +103,5 @@ server.registerTool('read_code', {
 }, async (args) => json(readCode(resolveRoot(args.path), args.file, args.symbol)));
 
 await server.connect(new StdioServerTransport());
+// The browser map's web server would keep the process alive after the host goes away.
+process.stdin.on('close', () => process.exit(0));

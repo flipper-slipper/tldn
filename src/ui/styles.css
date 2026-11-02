@@ -58,6 +58,13 @@ button { font: inherit; color: inherit; }
 .proposal input { min-width: 280px; padding: 6px 9px; border: 1px solid var(--line); border-radius: 7px; background: var(--bg); color: var(--fg); }
 
 .body { flex: 1; display: flex; min-height: 0; }
+
+.help { height: 100vh; min-height: 520px; display: flex; flex-direction: column; }
+.help-body { flex: 1; overflow: auto; padding: 6px 16px 20px; max-width: 720px; line-height: 1.5; }
+.help-body h3 { font-size: 13.5px; margin: 16px 0 4px; }
+.help-body ul { margin: 0; padding-left: 18px; }
+.help-body li { margin: 3px 0; }
+.help-body code { font-family: var(--mono); font-size: 12px; background: var(--code-hl); padding: 1px 4px; border-radius: 4px; }
 .stage { flex: 1; position: relative; min-width: 0; background: var(--canvas); background-image: radial-gradient(var(--dot) 1px, transparent 1px); background-size: 20px 20px; }
 .canvas { position: absolute; inset: 0; overflow: hidden; cursor: grab; touch-action: none; }
 .canvas:active { cursor: grabbing; }
@@ -71,8 +78,8 @@ button { font: inherit; color: inherit; }
 .edge.hl path:not(.hit) { stroke: var(--sel); stroke-width: 3.2; }
 .edge.dim { opacity: .25; }
 .head { fill: var(--edge); } .head.p { fill: var(--accent); } .head.h { fill: var(--sel); }
-.elabel { position: absolute; font-size: 14px; line-height: 1.25; color: var(--muted); background: var(--canvas); padding: 2px 6px; border-radius: 5px; text-align: center; box-shadow: 0 0 0 2px var(--canvas); cursor: pointer; display: flex; flex-direction: column; align-items: center; }
-.elabel small { font-size: 13px; opacity: .85; }
+.elabel { position: absolute; transform: translate(-50%, -50%); width: max-content; max-width: 190px; font-size: 12px; line-height: 1.25; color: var(--muted); background: var(--canvas); padding: 2px 6px; border-radius: 5px; text-align: center; box-shadow: 0 0 0 2px var(--canvas); cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+.elabel small { font-size: 11px; opacity: .85; }
 .elabel.proposed { color: var(--accent); }
 .elabel.dim { opacity: .3; }
 
@@ -85,7 +92,9 @@ button { font: inherit; color: inherit; }
 .node.k-external { border-style: dashed; border-color: var(--muted); }
 .node.k-system:not(.frame) { border-width: 3.5px; }
 .node.stub { opacity: .72; border-style: dashed; }
-.node.frame { background: transparent; border: 2px dashed var(--line); padding: 0; cursor: default; overflow: visible; }
+/* clicks inside a frame reach the arrows under it; the frame is selected by its label */
+.node.frame { background: transparent; border: 2px dashed var(--line); padding: 0; cursor: default; overflow: visible; pointer-events: none; }
+.node.frame .frame-label, .node.frame .badge { pointer-events: auto; cursor: pointer; }
 .node.frame:hover { box-shadow: none; }
 .node.frame .frame-label { position: absolute; left: 16px; top: 10px; font-size: 18px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
 .node.frame .frame-label small { text-transform: none; letter-spacing: 0; font-weight: 400; }
