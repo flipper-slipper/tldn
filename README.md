@@ -1,14 +1,17 @@
 # VibeBlocks
+Through developing VibeBlocks, we’ve been trying to answer a big question: How might we use interactive code abstractions to help vibe coders more easily modify AI-generated code while developing a deeper understanding of how it works? 
 
-An interactive C4 diagram of your code that you read instead of the code. It appears inside your
+VibeBlocks is a vibe coding tool that explores how programming with AI can be made more understandable and involved, allowing the user to be more proactive in creating and modifying their code. Rather than requiring users to navigate large amounts of raw code, VibeBlocks explores whether visual representations of a coding project in the forms of either a system or block diagram can give users a clearer sense of what the AI is changing and creating. It is intended for people who already use AI as part of their programming process but still want to understand and have more agency over what they build.
+
+In VibeBlocks, there is an interactive C4 diagram of your code that you can read instead of the code. It appears inside your
 agent's chat (Claude Desktop, Claude Code, VS Code, Codex). You click from Context → Containers →
 Components → Code, and anything you ask from the diagram goes to your own agent in the host's chat.
-Before the agent builds a feature it proposes the change on the diagram (drawn dashed), and you
+Before the agent builds a feature, it proposes the change on the diagram (drawn dashed), and you can
 approve, modify or reject it there.
 
 This repo is the private dev repo: the MCP server, the diagram UI, and example projects to test them on.
 
-## How it works in one minute
+## How it works in a nutshell
 
 ```
  your agent (Claude, Codex…)                    the host (Claude Desktop, VS Code…)
@@ -41,6 +44,7 @@ This repo is the private dev repo: the MCP server, the diagram UI, and example p
 ## Getting started
 
 You need Node.js 20.11 or later.
+To install it, open a Terminal window and enter:
 
 ```bash
 npm install
@@ -129,7 +133,7 @@ dist/                build output (git-ignored): mcp.mjs and ui/index.html
 Build first (`npm run build`); hosts run `dist/mcp.mjs` from this checkout, next to `node_modules`.
 
 **Claude Desktop**: add this to `~/Library/Application Support/Claude/claude_desktop_config.json`
-under `"mcpServers"`, then quit Claude Desktop with ⌘Q and reopen it:
+under `"mcpServers"`, then quit Claude Desktop (with Alt+F4 for Windows or with ⌘Q for Mac) and reopen it:
 
 ```json
 "vibeblocks": {
