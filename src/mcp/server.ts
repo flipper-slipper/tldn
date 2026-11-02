@@ -10,7 +10,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { registerAppResource, registerAppTool, RESOURCE_MIME_TYPE } from '@modelcontextprotocol/ext-apps/server';
 import { z } from 'zod';
 import { GUIDE } from '../guide';
-import { applyProposal, discardProposal, getModel, getViews, mapSummary, proposeChange, readCode, resolveRoot, updateModel } from '../service';
+import { applyProposal, discardProposal, getModel, getViews, mapSnapshot, mapSummary, proposeChange, readCode, resolveRoot, updateModel } from '../service';
 import { OPS_REFERENCE } from '../model/ops';
 
 const UI_URI = 'ui://vibeblocks/map.html';
@@ -44,8 +44,13 @@ registerAppTool(server, 'show_map', {
 }, async (args) => {
   const root = resolveRoot(args.path);
   const text = mapSummary(root) ?? 'This project has no VibeBlocks model yet. Call get_guide, read the code, then update_model.';
-  // the summary also goes in structuredContent: some hosts show the model only that
-  return { content: [{ type: 'text' as const, text }], structuredContent: { root, focus: args.focus ?? null, summary: text } };
+  // the summary also goes in structuredContent: some hosts show the model only that. The map's data
+  // goes in _meta, for hosts that render the map but don't let it call get_views / read_code.
+  return {
+    content: [{ type: 'text' as const, text }],
+    structuredContent: { root, focus: args.focus ?? null, summary: text },
+    _meta: { vibeblocks: await mapSnapshot(root) },
+  };
 });
 
 server.registerTool('get_guide', { description: 'How to draw and change the VibeBlocks C4 model: levels, rules, relationship kinds, workflow. Read before the first update_model.', inputSchema: {} },

@@ -17,12 +17,28 @@ export interface Host {
 export async function connectHost(onToast: (msg: string) => void): Promise<Host> {
   if (window.parent === window) return devHost(onToast);
   const app = new App({ name: 'VibeBlocks', version: '0.1.0' }, {});
+  // show_map's result carries the map's data, for hosts that refuse calls from the map (the Claude
+  // desktop app's Code tab: "IPC not available"). Once a call fails, use only that snapshot.
+  let snapshot: { get_views?: unknown; read_code?: Record<string, unknown> } | null = null;
+  let live = true;
+  const fromSnapshot = (tool: string, args: Record<string, unknown>) =>
+    tool === 'get_views' ? snapshot?.get_views
+      : tool === 'read_code' ? snapshot?.read_code?.[`${args.file}#${args.symbol ?? ''}`] ?? { text: '', error: 'This code was not sent with the map. Ask the agent to show it.' }
+      : undefined;
   const host: Host = {
     kind: 'mcp', root: null, focus: null,
     async call(tool, args = {}) {
-      const r: any = await app.callServerTool({ name: tool, arguments: { ...(host.root ? { path: host.root } : {}), ...args } });
-      if (r.isError) throw new Error(r.content?.[0]?.text ?? 'tool failed');
-      return r.structuredContent ?? JSON.parse(r.content?.[0]?.text ?? 'null');
+      if (!live && snapshot) return fromSnapshot(tool, args) as any;
+      try {
+        const r: any = await app.callServerTool({ name: tool, arguments: { ...(host.root ? { path: host.root } : {}), ...args } });
+        if (r.isError) throw new Error(r.content?.[0]?.text ?? 'tool failed');
+        return r.structuredContent ?? JSON.parse(r.content?.[0]?.text ?? 'null');
+      } catch (e) {
+        const saved = snapshot && fromSnapshot(tool, args);
+        if (saved === undefined || saved === null) throw e;
+        live = false;
+        return saved as any;
+      }
     },
     async send(text) {
       const r = await app.sendMessage({ role: 'user', content: [{ type: 'text', text }] });
@@ -39,6 +55,7 @@ export async function connectHost(onToast: (msg: string) => void): Promise<Host>
       const sc = p?.structuredContent;
       if (sc?.root) host.root = sc.root;
       if (sc?.focus) host.focus = sc.focus;
+      if (p?._meta?.vibeblocks) snapshot = p._meta.vibeblocks;
       resolve();
     };
     setTimeout(resolve, 2500);

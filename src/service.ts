@@ -108,6 +108,28 @@ function withFiles(root: string, m: Model): Model {
 }
 
 /** A file's text plus the line range of a symbol in it, for the Code level. */
+/** What the map would ask the server for, computed up front. show_map sends it to the map in the
+ *  result's _meta (not shown to the agent), for hosts where the map can't call tools back. */
+export async function mapSnapshot(root: string, budget = 1_500_000) {
+  const views = await getViews(root);
+  const code: Record<string, ReturnType<typeof readCode>> = {};
+  const model = 'model' in views ? views.model : null;
+  for (const comp of model?.containers.flatMap((c) => c.components) ?? []) {
+    for (const ref of comp.code) {
+      const key = codeKey(ref.file, ref.symbol);
+      if (key in code) continue;
+      const r = readCode(root, ref.file, ref.symbol);
+      const size = r.text?.length ?? 0;
+      if (size > budget) continue;
+      budget -= size;
+      code[key] = r;
+    }
+  }
+  return { get_views: views, read_code: code };
+}
+
+export const codeKey = (file: string, symbol?: string) => `${file}#${symbol ?? ''}`;
+
 export function readCode(root: string, file: string, symbol?: string) {
   const text = repoReader(root)(file);
   if (text === null) return { error: `No file ${file} in this repo.` };

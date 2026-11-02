@@ -21,8 +21,12 @@ Setup takes about 5 minutes. Each task below takes 2 to 5 minutes.
 
 ## What you need
 
-- **Claude Code**, either in a terminal or in the **Code** tab of the Claude desktop app, signed in to
-  your own Claude account.
+- **The Claude desktop app**, signed in to your own Claude account. You'll use its **Code** tab: the
+  diagram shows up there. (Claude Code in a terminal works too, but it can only print a text summary
+  of the map, not the diagram.)
+- **Claude Code's `claude` command** in a terminal, to install the plugin. Check with
+  `claude --version`. If you don't have it, install Claude Code from
+  [claude.com/claude-code](https://claude.com/claude-code).
 - **Node.js 20 or later.** Check with `node --version`. If you don't have it, install it from
   [nodejs.org](https://nodejs.org).
 
@@ -35,35 +39,23 @@ These steps assume it's in your Downloads folder.
 
 ### 2. Install the VibeBlocks plugin
 
-Start Claude Code (open a terminal and type `claude`, or open the Code tab in the desktop app), then
-type these two commands, one at a time:
+Open a terminal and run these two commands, one at a time:
 
-```
-/plugin marketplace add ~/Downloads/tldn-main
-```
-
-```
-/plugin install vibeblocks@vibeblocks
+```bash
+claude plugin marketplace add ~/Downloads/tldn-main
 ```
 
-Then **quit Claude Code and start it again** so the plugin loads.
+```bash
+claude plugin install vibeblocks@vibeblocks
+```
+
+Then **quit the Claude desktop app (⌘Q on Mac) and open it again** so the plugin loads.
 
 ### 3. Open the example project
 
-Open the folder `example-projects/acme-shop` from the download. It's a small online shop: a web
+In the desktop app's **Code** tab, start a new session and choose the folder
+`tldn-main/example-projects/acme-shop` from the download. It's a small online shop: a web
 storefront, a server, a database, and Stripe and SendGrid for payments and email.
-
-- **In a terminal:**
-
-  ```bash
-  cd ~/Downloads/tldn-main/example-projects/acme-shop
-  ```
-
-  ```bash
-  claude
-  ```
-
-- **In the desktop app:** start a new session in the Code tab and choose the `acme-shop` folder.
 
 ### 4. Draw the map
 
@@ -141,22 +133,26 @@ rules of a C4 diagram and against the files that exist. So:
 
 **Known issues:**
 
-- **The diagram may not appear in the chat in some versions of the Claude desktop app's Code tab.**
-  Claude still prints a text summary of the map. If this happens, try Claude Code in a terminal.
+- **The diagram doesn't refresh itself in the desktop app.** After Claude changes the code or the
+  plan, the diagram already in the chat stays as it was. Claude normally shows the map again; if it
+  doesn't, ask it to.
 - If Node.js was installed with a version manager (nvm, fnm), the desktop app may not find it, and the
-  plugin won't start. Use Claude Code in a terminal instead, or install Node from nodejs.org.
+  plugin won't start. Install Node from nodejs.org as well.
 - Very large folders on one level make the boxes small. Zoom in to read them.
 - The bigger example projects (`conduit`, `spring-petclinic`, `eshoponweb`) take noticeably longer to
   map than `acme-shop`.
 
 ## If something goes wrong
 
-- **`/vibeblocks:map` isn't recognised:** the plugin isn't loaded. Run `/plugin` to check it's
-  installed and enabled, then restart Claude Code.
+- **`/vibeblocks:map` isn't recognised:** the plugin isn't loaded. Run `claude plugin list` in a
+  terminal to check it's installed and enabled, then quit and reopen the desktop app.
 - **"The vibeblocks server failed to start":** check `node --version` is 20 or later (see the Node.js
   note under known issues).
-- **Install from GitHub instead of the ZIP:** if you have git access to this repo, step 2 can be
-  `/plugin marketplace add flipper-slipper/tldn` instead.
+- **The diagram says "VibeBlocks could not load the map":** you have an older version of the plugin.
+  Download the ZIP again, then run `claude plugin marketplace update vibeblocks` and
+  `claude plugin update vibeblocks@vibeblocks`, and reopen the app.
+- **Install from GitHub instead of the ZIP:** if you have git access to this repo, step 2 can start
+  with `claude plugin marketplace add flipper-slipper/tldn` instead.
 - **Start a map over:** delete the `.vibeblocks` folder inside the project and run `/vibeblocks:map`
   again.
 

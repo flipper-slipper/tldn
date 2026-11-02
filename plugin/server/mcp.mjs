@@ -102799,6 +102799,24 @@ function withFiles(root4, m19) {
   for (const c21 of out.containers) for (const k15 of c21.components) k15.code = k15.code.flatMap((r26) => r26.file.endsWith("/") ? expandRef(root4, r26.file).map((file2) => ({ file: file2 })) : [r26]);
   return out;
 }
+async function mapSnapshot(root4, budget = 15e5) {
+  const views = await getViews(root4);
+  const code2 = {};
+  const model = "model" in views ? views.model : null;
+  for (const comp of model?.containers.flatMap((c21) => c21.components) ?? []) {
+    for (const ref of comp.code) {
+      const key = codeKey(ref.file, ref.symbol);
+      if (key in code2) continue;
+      const r26 = readCode(root4, ref.file, ref.symbol);
+      const size = r26.text?.length ?? 0;
+      if (size > budget) continue;
+      budget -= size;
+      code2[key] = r26;
+    }
+  }
+  return { get_views: views, read_code: code2 };
+}
+var codeKey = (file2, symbol2) => `${file2}#${symbol2 ?? ""}`;
 function readCode(root4, file2, symbol2) {
   const text5 = repoReader(root4)(file2);
   if (text5 === null) return { error: `No file ${file2} in this repo.` };
@@ -102859,7 +102877,11 @@ K3(server, "show_map", {
 }, async (args) => {
   const root4 = resolveRoot(args.path);
   const text5 = mapSummary(root4) ?? "This project has no VibeBlocks model yet. Call get_guide, read the code, then update_model.";
-  return { content: [{ type: "text", text: text5 }], structuredContent: { root: root4, focus: args.focus ?? null, summary: text5 } };
+  return {
+    content: [{ type: "text", text: text5 }],
+    structuredContent: { root: root4, focus: args.focus ?? null, summary: text5 },
+    _meta: { vibeblocks: await mapSnapshot(root4) }
+  };
 });
 server.registerTool(
   "get_guide",
