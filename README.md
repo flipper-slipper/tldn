@@ -76,8 +76,9 @@ starting point for every task.
 - **Double-click** a box (or click the pill under it) to go one level deeper: system → apps and
   databases → parts of an app → code.
 - **← Zoom out** or the breadcrumbs at the top take you back up.
-- **Pinch** with two fingers on a trackpad: keep pinching into a box and it opens; pinch out past the
-  whole level to go back up. One pinch moves one level.
+- **Scroll** (two fingers on a trackpad, or a mouse wheel) to zoom wherever the pointer is. Keep
+  zooming in over a box and you move into it; zoom out past the whole level to go back up. One scroll
+  moves one level. Pinching works the same way. In the code, scrolling scrolls the file.
 - **Arrows** show what talks to what. **Dashed** boxes are either outside services (like Stripe) or
   changes that are proposed but not built yet.
 - **Ask the agent:** with something selected, use **Why is this here?**, **Explain**, or type your own

@@ -185,20 +185,22 @@ function Diagram({ view, sel, setSel, open, up, settling }: { view: ComputedView
   useEffect(() => { setCam(fit()); }, [view.id, fit]);
   const c = cam ?? fit();
 
+  // Two-finger scroll (or a mouse wheel, or a pinch) zooms where the pointer is; sideways scroll pans.
   const onWheel = (e: React.WheelEvent) => {
-    if (e.ctrlKey || e.metaKey) {
-      if (settling()) return; // the rest of the pinch that just changed level
-      const r = box.current!.getBoundingClientRect();
-      const px = e.clientX - r.left, py = e.clientY - r.top;
-      const s = Math.min(3, Math.max(0.15, c.s * Math.exp(-e.deltaY * 0.01)));
-      // Pinch into a box until it nearly fills the map: open it. Pinch out past the fitted size: go up.
-      if (e.deltaY < 0) {
-        const wx = (px - c.x) / c.s, wy = (py - c.y) / c.s;
-        const n = view.nodes.find((k) => !k.frame && canDrill(k) && wx >= k.x && wx <= k.x + k.w && wy >= k.y && wy <= k.y + k.h);
-        if (n && (n.w * s > size.w * DRILL_FILL || n.h * s > size.h * DRILL_FILL || s >= 3)) return open(n);
-      } else if (up && s < fit().s * 0.75) return up();
-      setCam({ s, x: px - (px - c.x) * (s / c.s), y: py - (py - c.y) * (s / c.s) });
-    } else setCam({ ...c, x: c.x - e.deltaX, y: c.y - e.deltaY });
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && !e.ctrlKey) return setCam({ ...c, x: c.x - e.deltaX });
+    if (settling()) return; // the rest of the gesture that just changed level
+    const r = box.current!.getBoundingClientRect();
+    const px = e.clientX - r.left, py = e.clientY - r.top;
+    // a pinch sends small deltas, a scroll larger ones (a mouse wheel ~100 a notch)
+    const dy = Math.max(-60, Math.min(60, e.deltaY)) * (e.ctrlKey ? 0.01 : 0.004);
+    const s = Math.min(3, Math.max(0.15, c.s * Math.exp(-dy)));
+    // Zoom into a box until it nearly fills the map: open it. Zoom out past the fitted size: go up.
+    if (dy < 0) {
+      const wx = (px - c.x) / c.s, wy = (py - c.y) / c.s;
+      const n = view.nodes.find((k) => !k.frame && canDrill(k) && wx >= k.x && wx <= k.x + k.w && wy >= k.y && wy <= k.y + k.h);
+      if (n && (n.w * s > size.w * DRILL_FILL || n.h * s > size.h * DRILL_FILL || s >= 3)) return open(n);
+    } else if (up && s < fit().s * 0.75) return up();
+    setCam({ s, x: px - (px - c.x) * (s / c.s), y: py - (py - c.y) * (s / c.s) });
   };
   const nodes = [...view.nodes].sort((a, b) => Number(b.frame) - Number(a.frame));
   const lines = useMemo(() => straightEdges(view), [view]);

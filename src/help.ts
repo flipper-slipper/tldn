@@ -13,8 +13,8 @@ export const HELP: HelpSection[] = [
       { text: 'The map has four levels: **Context** (the people who use the system and the outside services it talks to), **Containers** (the apps, servers and databases), **Components** (the parts of one container) and **Code**.' },
       { text: 'Click a box to select it. The panel shows what it is, the code behind it, and its arrows in and out.' },
       { text: 'Double-click a box, or click the pill under it, to go one level deeper. **← Zoom out** or the breadcrumbs at the top take you back up.' },
-      { text: '**Pinch with two fingers** on a trackpad to zoom. Keep pinching into a box and it opens; pinch out past the whole level to go back up. One pinch moves one level.' },
-      { text: 'Scroll with two fingers, or drag the background, to move around.' },
+      { text: '**Scroll** (two fingers on a trackpad, or a mouse wheel) to zoom in and out wherever the pointer is. Keep zooming in over a box and you move into it; zoom out past the whole level to go back up. One scroll moves one level. Pinching works the same way.' },
+      { text: 'Drag the background, or scroll sideways, to move around. In the code, scrolling scrolls the file; pinch out or use **← Zoom out** to leave it.' },
     ],
   },
   {

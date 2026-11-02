@@ -1,6 +1,6 @@
 {
   "name": "vibeblocks",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Interactive C4 diagram of your code, drawn by your agent and shown in the chat. Type /vibeblocks:map in a project.",
   "author": { "name": "VibeBlocks team" },
   "license": "MIT",
