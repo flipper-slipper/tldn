@@ -12,5 +12,5 @@
     "types": ["node"],
     "allowImportingTsExtensions": true
   },
-  "include": ["src", "dev", "test"]
+  "include": ["src", "dev", "test", "vscode/src"]
 }

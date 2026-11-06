@@ -1,0 +1,35 @@
+{
+  "name": "vibeblocks",
+  "displayName": "VibeBlocks",
+  "description": "An interactive C4 map of your code, drawn and kept current by your coding agent. Click from the whole system down to the code, and ask your agent about anything you select.",
+  "version": "0.1.0",
+  "publisher": "vibeblocks",
+  "license": "MIT",
+  "engines": { "vscode": "^1.90.0" },
+  "categories": ["Visualization", "AI", "Other"],
+  "main": "./dist/extension.js",
+  "activationEvents": ["onUri", "workspaceContains:.vibeblocks/model.yaml"],
+  "files": ["dist/**", "README.md"],
+  "contributes": {
+    "commands": [
+      { "command": "vibeblocks.showMap", "title": "Show Map", "category": "VibeBlocks", "icon": "$(type-hierarchy)" }
+    ],
+    "configuration": {
+      "title": "VibeBlocks",
+      "properties": {
+        "vibeblocks.agent": {
+          "type": "string",
+          "default": "auto",
+          "enum": ["auto", "claude-code", "copilot", "clipboard"],
+          "enumDescriptions": [
+            "Claude Code if it is installed, else GitHub Copilot Chat, else the clipboard",
+            "Send questions and approvals to Claude Code's chat",
+            "Send questions and approvals to GitHub Copilot Chat",
+            "Copy them to the clipboard, to paste into any agent"
+          ],
+          "description": "Where the map sends what you ask or approve."
+        }
+      }
+    }
+  }
+}

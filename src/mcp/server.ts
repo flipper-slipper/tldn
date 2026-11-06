@@ -1,5 +1,6 @@
 // VibeBlocks MCP server (stdio). The diagram is an MCP App: hosts that support MCP Apps (Claude,
-// VS Code, ChatGPT…) render it in the conversation; others get a text summary.
+// VS Code, ChatGPT…) render it in the conversation. In hosts that can't (Claude Code in a terminal),
+// show_map opens the map in a browser tab instead, and returns its link with a text summary.
 //
 // The project folder comes from the tool's `path`, else VIBEBLOCKS_ROOT, else the current folder
 // (Claude Code starts servers in the project folder).
@@ -7,12 +8,13 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { registerAppResource, registerAppTool, RESOURCE_MIME_TYPE } from '@modelcontextprotocol/ext-apps/server';
+import { getUiCapability, registerAppResource, registerAppTool, RESOURCE_MIME_TYPE } from '@modelcontextprotocol/ext-apps/server';
 import { z } from 'zod';
 import { GUIDE } from '../guide';
 import { applyProposal, discardProposal, getModel, getViews, mapSnapshot, mapSummary, proposeChange, readCode, resolveRoot, updateModel } from '../service';
 import { OPS_REFERENCE } from '../model/ops';
 import { openInBrowser } from '../browser';
+import { openInVsCode } from '../vscode-link';
 import { helpMarkdown } from '../help';
 
 const UI_URI = 'ui://vibeblocks/map.html';
@@ -34,6 +36,17 @@ const server = new McpServer(
   { instructions: 'VibeBlocks shows the project as an interactive C4 diagram in the conversation. Call show_map when the user asks about the project structure or architecture, or after you change the model. Before implementing a feature, call propose_change so the user can approve it on the diagram. Call get_guide before drawing or changing the model for the first time.' },
 );
 
+/** Can the host draw the map in the conversation? VIBEBLOCKS_BROWSER=always|never overrides. */
+function hostDrawsMap(): boolean {
+  const pref = process.env.VIBEBLOCKS_BROWSER;
+  if (pref === 'always') return false;
+  if (pref === 'never') return true;
+  return !!getUiCapability(server.server.getClientCapabilities() as any)?.mimeTypes?.includes(RESOURCE_MIME_TYPE);
+}
+/** projects whose map this server already opened in a browser (the tab keeps itself up to date) */
+const opened = new Set<string>();
+const launchBrowser = () => process.env.VIBEBLOCKS_NO_BROWSER !== '1';
+
 registerAppResource(server, 'VibeBlocks map', UI_URI, { description: 'Interactive C4 diagram of the project' }, async () => ({
   contents: [{ uri: UI_URI, mimeType: RESOURCE_MIME_TYPE, text: uiHtml() }],
 }));
@@ -45,7 +58,16 @@ registerAppTool(server, 'show_map', {
   _meta: { ui: { resourceUri: UI_URI } },
 }, async (args) => {
   const root = resolveRoot(args.path);
-  const text = mapSummary(root) ?? 'This project has no VibeBlocks model yet. Call get_guide, read the code, then update_model.';
+  const summary = mapSummary(root);
+  let text = summary ?? 'This project has no VibeBlocks model yet. Call get_guide, read the code, then update_model.';
+  if (summary && !hostDrawsMap() && openInVsCode(root, args.focus)) {
+    text = `The map opened in the VibeBlocks panel in VS Code. Tell the user.\n\n${text}`;
+  } else if (summary && !hostDrawsMap()) {
+    const first = !opened.has(root);
+    const url = await openInBrowser(root, uiHtml, first && launchBrowser());
+    opened.add(root);
+    text = `${first ? 'This app cannot draw the map in the chat, so it opened in the browser' : 'The map is open in the browser and updates itself'}: ${url}\nTell the user, with the link.\n\n${text}`;
+  }
   // the summary also goes in structuredContent: some hosts show the model only that. The map's data
   // goes in _meta, for hosts that render the map but don't let it call get_views / read_code.
   return {
@@ -84,7 +106,8 @@ server.registerTool('open_in_browser', {
 }, async (args) => {
   const root = resolveRoot(args.path);
   if (!mapSummary(root)) return json({ opened: false, note: 'This project has no VibeBlocks model yet. Draw it first (get_guide, then update_model).' });
-  return json({ opened: true, url: await openInBrowser(root, uiHtml, process.env.VIBEBLOCKS_NO_BROWSER !== '1') });
+  opened.add(root);
+  return json({ opened: true, url: await openInBrowser(root, uiHtml, launchBrowser()) });
 });
 
 server.registerTool('get_help', { description: 'The quick guide to using the VibeBlocks map (what the user can click, the commands, where to open it), as Markdown. Use for /vibeblocks:help or when the user asks how to use the map.', inputSchema: {} },

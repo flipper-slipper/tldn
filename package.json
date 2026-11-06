@@ -8,12 +8,14 @@
   "scripts": {
     "build": "vite build && node scripts/build-server.mjs",
     "build:plugin": "vite build && node scripts/build-plugin.mjs",
+    "build:vscode": "vite build && node scripts/build-vscode.mjs",
     "dev": "node --import tsx dev/serve.ts",
     "test": "node --import tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit -p .",
     "mcp": "node --import tsx src/mcp/server.ts",
     "test:e2e": "npm run build && node --import tsx test/mcp.e2e.ts",
-    "example": "node --import tsx scripts/example.ts"
+    "example": "node --import tsx scripts/example.ts",
+    "export": "node --import tsx scripts/export-snapshot.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/ext-apps": "^1.7.5",
@@ -28,6 +30,7 @@
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@types/vscode": "^1.90.0",
     "@vitejs/plugin-react": "^6.1.2",
     "esbuild": "^0.28.2",
     "tsx": "^4.23.15",
