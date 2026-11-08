@@ -1,0 +1,36 @@
+version: 1
+system:
+  id: runtime-demo
+  name: Runtime Debugging Demo
+  description: A small Node.js application for practicing runtime debugging.
+people:
+  - id: developer
+    name: Developer
+    description: Runs the demo and investigates a bug.
+externals: []
+containers:
+  - id: demo-app
+    name: Node Demo App
+    type: api
+    description: A running Node.js app that coordinates and processes work.
+    technology: Node.js
+    components:
+      - id: coordinator
+        name: Coordinator
+        description: Schedules the work and catches errors.
+        code:
+          - file: app.mjs
+      - id: worker
+        name: Work Processor
+        description: Does work and contains a deliberate failing condition.
+        code:
+          - file: worker.mjs
+relationships:
+  - from: developer
+    to: coordinator
+    kind: uses
+    description: runs the demo
+  - from: coordinator
+    to: worker
+    kind: internal
+    description: processes items
