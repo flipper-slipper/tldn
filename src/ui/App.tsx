@@ -3,6 +3,8 @@ import type { ComputedView, ViewEdge, ViewNode, Views } from '../engine/types';
 import type { Component, Model, Relationship } from '../model/schema';
 import type { Host } from './host';
 import { helpFor } from '../help';
+import { toPng } from 'html-to-image';
+import { jsPDF } from 'jspdf';
 
 type Sel = { type: 'node' | 'edge'; id: string } | null;
 interface CodeOpen { component: string; ref: number }
@@ -152,6 +154,99 @@ export function MapApp({ host }: { host: Host }) {
     pinch.current += e.deltaY;
     if (pinch.current > 120) { pinch.current = 0; zoomOut(); }
   };
+  
+const exportPdf = async () => {
+  const pdf = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  const originalViewId = viewId;
+  const originalCode = code;
+
+  // Used this for debugging because arrows weren't showing up on export, keeping around in case anyone else needs to test w/ future changes
+  // const paths = canvas.querySelectorAll('.edge path');
+  // console.table(
+  //   Array.from(paths).map((path) => ({
+  //     className: path.getAttribute('class'),
+  //     stroke: getComputedStyle(path).stroke,
+  //     width: getComputedStyle(path).strokeWidth,
+  //     d: path.getAttribute('d')?.slice(0, 40),
+  //   }))
+  // );
+
+  try {
+    setCode(null);
+    for (let i = 0; i < data.views.length; i++) {
+      const diagramView = data.views[i];
+      setViewId(diagramView.id);
+      let canvas: HTMLElement | null = null;
+
+      for (let attempt = 0; attempt < 30; attempt++) {
+        await new Promise<void>((resolve) =>
+        setTimeout(resolve, 100)
+      );
+
+      canvas = document.querySelector('.canvas') as HTMLElement | null;
+
+      if (canvas?.dataset.viewId === diagramView.id) {
+        break;
+      }
+    }
+    if (!canvas || canvas.dataset.viewId !== diagramView.id){
+      throw new Error(`Could not render ${diagramView.title}`);
+    }
+
+    await new Promise<void>((resolve) =>
+      setTimeout(resolve, 400)
+    );
+
+    const image = await toPng(canvas, {
+      pixelRatio: 2,
+      backgroundColor: '#202023',
+      filter: (node) => 
+        !(node instanceof Element && node.classList.contains('hit')),
+    });
+
+    if (i > 0) {
+      pdf.addPage();
+    }
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    const margin = 12;
+    const titleHeight = 12;
+
+    const availableWidth = pageWidth - 2 * margin;
+    const availableHeight = pageHeight - 2 * margin - titleHeight;
+
+    const scale = Math.min(
+      availableWidth / canvas.clientWidth,
+      availableHeight / canvas.clientHeight
+    );
+
+    const imageWidth = canvas.clientWidth * scale;
+    const imageHeight = canvas.clientHeight * scale;
+
+    const x = (pageWidth - imageWidth) / 2;
+    const y = margin + titleHeight + (availableHeight - imageHeight) / 2;
+
+    pdf.setFontSize(14);
+    pdf.text(diagramView.title, margin, margin + 5);
+
+    pdf.addImage(image, 'PNG', x, y, imageWidth, imageHeight);
+    }
+
+    pdf.save("vibeblocks-diagrams.pdf");
+  } catch (error) {
+    console.error('Failed to export PDF', error);
+  } finally {
+    setViewId(originalViewId);
+    setCode(originalCode);
+  }
+};
 
   return (
     <div className="app">
@@ -170,6 +265,7 @@ export function MapApp({ host }: { host: Host }) {
           </div>
           {host.openInBrowser && <button className="btn sm" onClick={() => host.openInBrowser!()}>Open in browser</button>}
           {host.canExpand && <button className="btn sm" title="Bigger" onClick={() => host.expand()}>⤢</button>}
+          <button className="btn sm" onClick={exportPdf}>Export PDF</button>
           <button className="btn sm" title="How to use the map" onClick={() => setHelp(true)}>?</button>
         </div>
       </header>
@@ -342,7 +438,7 @@ function Diagram({ view, mode, sel, setSel, open, up, settling }: { view: Comput
   const related = (e: ViewEdge) => sel && (sel.type === 'edge' ? sel.id === e.id : e.from === sel.id || e.to === sel.id);
 
   return (
-    <div className="canvas" ref={box} onWheel={onWheel}
+    <div className="canvas" data-view-id={view.id} ref={box} onWheel={onWheel}
       onPointerDown={(e) => { if ((e.target as HTMLElement).closest('.node,.elabel,.pill')) return; drag.current = { x: e.clientX, y: e.clientY, cx: c.x, cy: c.y, moved: false }; (e.target as HTMLElement).setPointerCapture?.(e.pointerId); }}
       onPointerMove={(e) => { const d = drag.current; if (!d) return; if (Math.abs(e.clientX - d.x) + Math.abs(e.clientY - d.y) > 3) d.moved = true; jump({ ...c, x: d.cx + e.clientX - d.x, y: d.cy + e.clientY - d.y }); }}
       onPointerUp={() => { if (drag.current && !drag.current.moved) setSel(null); drag.current = null; }}>
@@ -360,7 +456,7 @@ function Diagram({ view, mode, sel, setSel, open, up, settling }: { view: Comput
             const m = e.status === 'proposed' ? 'p' : hl ? 'h' : 'n';
             return (
               <g key={e.id} className={`edge ${e.status ?? ''} ${e.kind === 'external' ? 'ext' : ''} ${hl ? 'hl' : ''} ${sel && !hl ? 'dim' : ''}`}>
-                <path d={lines.get(e.id)?.d ?? pathOf(e.points)} markerEnd={`url(#arrow-${m})`} />
+                <path d={lines.get(e.id)?.d ?? pathOf(e.points)} markerEnd={`url(#arrow-${m})`} style={{fill: 'none', stroke: '#9a9aa3', strokeWidth: 2.4,}}/>
                 <path d={lines.get(e.id)?.d ?? pathOf(e.points)} className="hit" style={{ strokeWidth: Math.max(18, 14 / c.s) }} onClick={(ev) => { ev.stopPropagation(); setSel({ type: 'edge', id: e.id }); }} />
               </g>
             );
