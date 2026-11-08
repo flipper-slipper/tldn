@@ -369,7 +369,7 @@ function Diagram({ view, mode, sel, setSel, open, up, settling }: { view: Comput
         {nodes.map((n) => (
           <div key={n.id}
             className={`node k-${n.kind} ${n.frame ? 'frame' : ''} ${n.stub ? 'stub' : ''} ${n.status ? `st-${n.status}` : ''} ${sel?.id === n.id ? 'sel' : ''} ${n.zoomTo || n.kind === 'component' ? 'drill' : ''} ${gauge?.id === n.id ? 'opening' : ''}`}
-            style={{ left: n.x, top: n.y, width: n.w, height: n.h, ...(gauge?.id === n.id ? { '--p': gauge.p } as React.CSSProperties : {}) }}
+            style={{ left: n.x, top: n.y, width: n.w, height: n.h, ...(n.kind ==='component' ? {borderWidth: '2.5px'} : {}), ...(n.status === 'changed' ? {borderColor:'#dc2626'} : {}), ...(gauge?.id === n.id ? { '--p': gauge.p } as React.CSSProperties : {}) }} // Clearer outline and conditional red highlighting
             onClick={(e) => { e.stopPropagation(); setSel({ type: 'node', id: n.id }); }}
             onDoubleClick={(e) => { e.stopPropagation(); openAt(n); }}>
             {n.status && <span className={`badge ${n.status}`}>{n.status === 'proposed' ? '+ new' : n.status === 'changed' ? 'will change' : 'will be removed'}</span>}
@@ -427,25 +427,58 @@ const short = (t: string, max: number) => (t.length > max ? t.slice(0, max - 1).
 
 /** Straight arrows from box edge to box edge (the layout's curves wander), and where each label
  *  sits. Arrows between the same two boxes are spread apart so they don't overlap. */
+/** Note: Change in this code segment with the arrows now following the 90 degree angle following industry standards of lining*/
 function straightEdges(view: ComputedView): Map<string, { d: string; mid: { x: number; y: number } }> {
   const byId = new Map(view.nodes.map((n) => [n.id, n]));
   const pairKey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`);
   const pairs = new Map<string, ViewEdge[]>();
   for (const e of view.edges) pairs.set(pairKey(e.from, e.to), [...(pairs.get(pairKey(e.from, e.to)) ?? []), e]);
   const out = new Map<string, { d: string; mid: { x: number; y: number } }>();
+
   for (const e of view.edges) {
     const a = byId.get(e.from), b = byId.get(e.to);
     if (!a || !b) continue;
     const ca = { x: a.x + a.w / 2, y: a.y + a.h / 2 }, cb = { x: b.x + b.w / 2, y: b.y + b.h / 2 };
-    const len = Math.hypot(cb.x - ca.x, cb.y - ca.y) || 1;
-    const nx = -(cb.y - ca.y) / len, ny = (cb.x - ca.x) / len; // unit normal
     const group = pairs.get(pairKey(e.from, e.to))!;
-    // keep the normal pointing the same way for both directions, so A→B and B→A separate
-    const flip = e.from < e.to ? 1 : -1;
-    const off = (group.indexOf(e) - (group.length - 1) / 2) * 22 * flip;
-    const pa = { x: ca.x + nx * off, y: ca.y + ny * off }, pb = { x: cb.x + nx * off, y: cb.y + ny * off };
-    const s = exitPoint(a, pa, pb), t = exitPoint(b, pb, pa);
-    out.set(e.id, { d: `M${s.x},${s.y} L${t.x},${t.y}`, mid: { x: (s.x + t.x) / 2, y: (s.y + t.y) / 2 } });
+
+    // First Change: Allowing for multiple connections on boxes
+    const off = (group.indexOf(e) - (group.length - 1) / 2) * 22;
+    const horizontal = Math.abs(cb.x - ca.x) >= Math.abs(cb.y - ca.y)
+
+    // Making a replacemnt of diagonal paths with horizontal and vertical segments to follow the industry standards.
+    const points = horizontal
+      ? [
+          { x: cb.x >= ca.x ? a.x + a.w : a.x, y: ca.y },
+          { x: (ca.x + cb.x) / 2 + off, y: ca.y },
+          { x: (ca.x + cb.x) / 2 + off, y: cb.y },
+          { x: cb.x >= ca.x ? b.x : b.x + b.w, y: cb.y }
+        ]
+      : [
+          { x: ca.x, y: cb.y >= ca.y ? a.y + a.h : a.y },
+          { x: ca.x, y: (ca.y + cb.y) / 2 + off },
+          { x: cb.x, y: (ca.y + cb.y) / 2 + off },
+          { x: cb.x, y: cb.y >= ca.y ? b.y : b.y + b.h }
+        ];
+
+    //Find the longest straight segment for the relationship label.
+    let best = 0, bestLength = 0;
+    for (let i = 0; i < points.length - 1; i++) {
+      const length = Math.abs(points[i + 1].x - points[i].x) + Math.abs(points[i + 1].y - points[i].y);
+      if (length > bestLength) { best = i; bestLength = length; }
+    }
+
+    const p = points[best], q = points[best + 1];
+    const mid = { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 };
+
+    //Leave a gap in the line so relationship text remains readable.
+    const labelWidth = Math.max(short(e.label, 64).length * 7, e.technology ? short(e.technology, 40).length * 6 : 0) + 28;
+    const gap = Math.min(p.y === q.y ? labelWidth : 48, Math.max(0, bestLength - 18));
+    const dx = Math.sign(q.x - p.x), dy = Math.sign(q.y - p.y);
+    const before = { x: mid.x - dx * gap / 2, y: mid.y - dy * gap / 2 };
+    const after = { x: mid.x + dx * gap / 2, y: mid.y + dy * gap / 2 };
+
+    const path = (part: typeof points) => part.map((pt, i) => `${i ? 'L' : 'M'}${pt.x},${pt.y}`).join(' ');
+    out.set(e.id, { d: `${path([...points.slice(0, best + 1), before])} ${path([after, ...points.slice(best + 1)])}`, mid });
   }
   return out;
 }
@@ -592,6 +625,7 @@ function Overview({ model, view }: { model: Model; view: ComputedView }) {
         <li><span className="lg box" /> part of {model.system.name}</li>
         <li><span className="lg box ext" /> external system (no code here)</li>
         <li><span className="lg box prop" /> proposed, not built yet</li>
+        <li><span className="lg box changed" /> changes in the proposal</li>
         <li><span className="lg line" /> arrow: who talks to whom, about what</li>
       </ul>
       <p className="muted">Select a box or arrow to see what it does. Questions go to your agent’s chat.</p>
